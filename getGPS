@@ -1,0 +1,1 @@
+dmesg | grep -oP '(?<=pl2303 converter now attached to )[^ ]*'

@@ -1,0 +1,1 @@
+dmesg | grep -oP '(?<=ch341-uart converter now attached to )[^ ]*' | tail -1

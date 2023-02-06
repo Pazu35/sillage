@@ -1,0 +1,1 @@
+screen -S sillage_python python3 /home/sillage2/sillage_python/Sillage/log_data.py
