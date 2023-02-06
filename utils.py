@@ -2,6 +2,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+import gpxpy
+import gpxpy.gpx
+
+# Parsing an existing file:
+# -------------------------
+
+def convert(d):
+    d = abs(d)
+    D = int(d)
+    M = (d - D) * 60
+    return float("{0:2d}{1:7.4f}".format(D, M))
+
+def get_latlon_as_in_nmea_from_gpx(filename):
+    gpx_file = open(filename, 'r')
+
+    gpx = gpxpy.parse(gpx_file)
+    lat = []
+    lon = []
+    for track in gpx.tracks:
+        for segment in track.segments:
+            for point in segment.points:
+                lat.append(convert(point.latitude))
+                lon.append(convert(point.longitude))
+    return np.array(lat), np.array(lon)
+
+
 
 # Calculates Rotation Matrix given euler angles.
 def eulerAnglesToRotationMatrix(theta) :
@@ -258,7 +284,7 @@ def RK(p, vr, R , ar, wr, dt):
     return (p, vr, R)
 
 
-def plot_files(f1, gps, df1 = '', time = ''):
+def plot_files(f1, gps, df1 = '', time = '', gpx = ''):
 
     times, gps_times, lat, lon , altitudes = log_gps(gps)
     alignement = np.mean(gps_times - times)
@@ -268,11 +294,15 @@ def plot_files(f1, gps, df1 = '', time = ''):
     acc_z = (acc1[:,2])
     print("Moyenne : ", np.mean(acc_z))
     print("Ecrat type : ", np.std(acc_z))
-    acc_z = np.abs(acc_z - np.mean(acc_z))
+    acc_z = np.abs(acc_z - np.mean(acc_z))/np.std(acc_z)
     detect_times = []
     if df1 != '':
         detect_times, _ = log_file_detect(df1)
 
+    lat_x, lon_x = [], []
+
+    if gpx != '':
+        lat_x, lon_x = get_latlon_as_in_nmea_from_gpx(gpx)
 
     dilat = 1.
     time_off = 0.
@@ -292,24 +322,25 @@ def plot_files(f1, gps, df1 = '', time = ''):
 
     graph_offset = 8
     a = len(t)/len(lat)
+    b = len(lat_x)/len(lat)
+    print('Coef for correl : ', a, ', ', b)
 
-    f1 = plt.figure()
+
+
+    f1 = plt.figure(figsize=(15,10))
+    f1.subplots_adjust(hspace=0.5)
     f2 = plt.figure()
 
     ax1 = f1.add_subplot(311)
-    ax1.plot(times, altitudes)
     ax2 = f1.add_subplot(312)
-    ax2.plot(t,acc1)
-    ax2.scatter(detect_times, [graph_offset for i in range(len(detect_times))], color='blue')
-    ax2.scatter(lt_time, [graph_offset for i in range(len(lt_time))], color='green')
     ax4 = f1.add_subplot(313)
-    ax4.plot(t, acc_z)
     ax3 = f2.add_subplot(111)
 
     ax1.set_title('GPS Altitude')
     ax2.set_title('Accelerometers, x, y, z')
     ax2.legend(['X', 'Y', 'Z'])
-    ax3.set_title('Buoy GPS track')
+    ax3.set_title('GPS track')
+    ax3.legend(['Buoy', 'Boat'])
     ax4.set_title('Z accel centered')
 
     for i in range(len(lat)):
@@ -318,7 +349,13 @@ def plot_files(f1, gps, df1 = '', time = ''):
         ax3.cla()
         ax4.cla()
 
+        new_i_x = int(np.round(i*b))
+        # print("Check new_i_x : ", new_i_x)
+
         ax3.plot(lat, lon, color='blue')
+        # ax3.plot(lat_x, lon_x, color='green')
+        if len(lat_x)!= 0:
+            ax3.scatter(lat_x[new_i_x], lon_x[new_i_x], color='purple')
         ax3.scatter(lat[i], lon[i], color='red')
 
         ax1.plot(times, altitudes)
@@ -340,34 +377,12 @@ def plot_files(f1, gps, df1 = '', time = ''):
         ax1.set_title('GPS Altitude')
         ax2.set_title('Accelerometers, x, y, z')
         ax2.legend(['X', 'Y', 'Z'])
-        ax3.set_title('Buoy GPS track')
+        ax3.set_title('GPS track')
+        ax3.legend(['Buoy', 'Boat'])
         ax4.set_title('Z accel centered')
 
 
         plt.pause(0.001)
 
         
-import gpxpy
-import gpxpy.gpx
 
-# Parsing an existing file:
-# -------------------------
-
-def convert(d):
-    d = abs(d)
-    D = int(d)
-    M = (d - D) * 60
-    return float("{0:2d}{1:7.4f}".format(D, M))
-
-def get_latlon_as_in_nmea_from_gpx(filename)
-    gpx_file = open(filename, 'r')
-
-    gpx = gpxpy.parse(gpx_file)
-    lat = []
-    lon = []
-    for track in gpx.tracks:
-        for segment in track.segments:
-            for point in segment.points:
-                lat.append(convert(point.latitude))
-                lon.append(convert(point.longitude))
-    return (lat, lon)

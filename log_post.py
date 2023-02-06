@@ -827,8 +827,9 @@ if __name__ == '__main__':
 	f1 = 'log/ahrs1_log_2023-01-19_13_34_14.log'
 	gps1 = 'log/gps1_log_2023-01-19_13_34_14.log'
 	df1 = 'log/detect_ahrs1_log_2023-01-19_13_34_14.log'
+	gpx = 'log/2023-01-19 14_39_15.gpx'
 
-	plot_files(f1, gps1, df1, time)
+	plot_files(f1, gps1, df1, time, gpx)
 
 
 	times, gps_times, lat, lon , altitudes = log_gps(gps1)
