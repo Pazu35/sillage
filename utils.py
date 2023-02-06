@@ -265,7 +265,7 @@ def plot_files(f1, gps, df1 = '', time = ''):
     print('GPS time offset : ', alignement)
 
     t, acc1, gyr, mag, temp, rate = log_file(f1, alignement)
-    acc_z = (acc[:,2])
+    acc_z = (acc1[:,2])
     print("Moyenne : ", np.mean(acc_z))
     print("Ecrat type : ", np.std(acc_z))
     acc_z = np.abs(acc_z - np.mean(acc_z))
@@ -290,7 +290,7 @@ def plot_files(f1, gps, df1 = '', time = ''):
                 time_off += (dilat - 1)*test
             lt_time.append(value)
 
-    graph_offset = 15
+    graph_offset = 8
     a = len(t)/len(lat)
 
     f1 = plt.figure()
@@ -316,6 +316,7 @@ def plot_files(f1, gps, df1 = '', time = ''):
         ax1.cla()
         ax2.cla()
         ax3.cla()
+        ax4.cla()
 
         ax3.plot(lat, lon, color='blue')
         ax3.scatter(lat[i], lon[i], color='red')
@@ -324,14 +325,16 @@ def plot_files(f1, gps, df1 = '', time = ''):
         ax1.scatter(times[i], altitudes[i], color='red')
 
         ax2.plot(t, acc1)
-        ax2.scatter(detect_times, [graph_offset for i in range(len(detect_times))], color='blue')
-        ax2.scatter(lt_time, [graph_offset for i in range(len(lt_time))], color='green')
         new_i = int(np.round(i*a))
         ax2.scatter(t[new_i], acc1[:,0][new_i], color='red')
         ax2.scatter(t[new_i], acc1[:,1][new_i], color='red')
         ax2.scatter(t[new_i], acc1[:,2][new_i], color='red')
 
         ax4.plot(t, acc_z)
+        ax4.scatter(t[new_i], acc_z[new_i], color='red')
+        ax4.scatter(detect_times, [graph_offset for i in range(len(detect_times))], color='blue')
+        ax4.scatter(lt_time, [graph_offset for i in range(len(lt_time))], color='green')
+
 
 
         ax1.set_title('GPS Altitude')
