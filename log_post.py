@@ -790,9 +790,9 @@ if __name__ == '__main__':
 	# main_post(time, f1, f2, f3, f4, f_point, l_point)
 
 
-	# time = '07:54:54.82, 07:55:38.65, 07:56:20.48, 07:56:59.63, 07:57:30.27, 07:58:10.93, 07:58:48.31, 07:59:20.84, 08:00:00.39, 08:00:35.97, 08:01:06.07, 08:01:40.59, 08:02:14.72, 08:02:55.85, 08:03:29.77, 08:04:05.97, 08:04:36.77, 08:05:12.87'
-	# f1 = 'log/log_14_10/ahrs1_log_2022-10-14_07_44_50.log'
-	# df1 = 'log/log_14_10/detect_ahrs1_log_2022-10-14_07_44_50.log'
+	time = '07:54:54.82, 07:55:38.65, 07:56:20.48, 07:56:59.63, 07:57:30.27, 07:58:10.93, 07:58:48.31, 07:59:20.84, 08:00:00.39, 08:00:35.97, 08:01:06.07, 08:01:40.59, 08:02:14.72, 08:02:55.85, 08:03:29.77, 08:04:05.97, 08:04:36.77, 08:05:12.87'
+	f1 = 'log/log_14_10/ahrs1_log_2022-10-14_07_44_50.log'
+	df1 = 'log/log_14_10/detect_ahrs1_log_2022-10-14_07_44_50.log'
 
 	# f2 = 'log/log_14_10/ahrs2_log_2022-10-14_07_44_50.log'
 	# df2 = 'log/log_14_10/detect_ahrs2_log_2022-10-14_07_44_50.log'
@@ -803,11 +803,14 @@ if __name__ == '__main__':
 	# f4 = 'log/log_14_10/ahrs4_log_2022-10-14_07_44_50.log'
 	# df4 = 'log/log_14_10/detect_ahrs4_log_2022-10-14_07_44_50.log'
 
-	# gps = 'log/log_14_10/gps1_log_2022-10-14_07_44_50.log'
+	gps = 'log/log_14_10/gps1_log_2022-10-14_07_44_50.log'
 
+	f_point = 25500
+	l_point = 63000
+	# # time_off = 180 + alignement
+	# # dilat = 1.35
+	plot_files(f1, gps, df1, time, f_point=f_point, l_point=l_point)
 
-	# f_point = 25000
-	# l_point = 63000
 	# real_time_detect_check(f1, df1, time=time, f_point=f_point, l_point=l_point)
 	# real_time_detect_check(f2, df2, time=time, f_point=f_point, l_point=l_point)
 	# real_time_detect_check(f3, df3, time=time, f_point=f_point, l_point=l_point)
@@ -829,16 +832,16 @@ if __name__ == '__main__':
 	df1 = 'log/detect_ahrs1_log_2023-01-19_13_34_14.log'
 	gpx = 'log/2023-01-19 14_39_15.gpx'
 
-	plot_files(f1, gps1, df1, time, gpx)
+	# plot_files(f1, gps1, df1, time, gpx)
 
 
-	times, gps_times, lat, lon , altitudes = log_gps(gps1)
+	# times, gps_times, lat, lon , altitudes = log_gps(gps1)
 	# # times2, _, lat2, lon2 , _ = log_gps(gps)
 	# # times3, _, lat3, lon3 , _ = log_gps(gps3)
 	# alignement = np.mean(gps_times - times)
 	# print('GPS time offset : ', alignement)
 
-	t, acc1, gyr, mag, temp, rate = log_file(f1, alignement)
+	# t, acc1, gyr, mag, temp, rate = log_file(f1, alignement)
 
 	# plt.figure()
 	# plt.subplot(211)

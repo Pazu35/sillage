@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import datetime
 import gpxpy
 import gpxpy.gpx
-from geopy import distance
+# from geopy import distance
 import matplotlib.dates as mdates
 import scipy.signal as sg
 
@@ -18,31 +18,31 @@ import scipy.signal as sg
 
 
 
-def replace_tzinfo(dt):
-    return dt.replace(tzinfo=datetime.timezone(dt.utcoffset()))
+# def replace_tzinfo(dt):
+#     return dt.replace(tzinfo=datetime.timezone(dt.utcoffset()))
 
-def gps(gpx):
-	gpx = gpxpy.parse(gpx_file)
-	t_gps = []
-	v_gps = []
-	c = 0
-	for track in gpx.tracks:
-		for segment in track.segments:
-			for point in segment.points:
-				point.time = replace_tzinfo(point.time)
-				if c == 0:
-					t_gps.append(point.time)
-					v_gps.append(0)
-				else:
-					d = distance.distance((previous_point.latitude, previous_point.longitude), (point.latitude, point.longitude)).m
-					t_gps.append(point.time)
-					v_gps.append(d/(t_gps[c]-t_gps[c-1]).total_seconds())
-				previous_point = point
-				c += 1
+# def gps(gpx):
+# 	gpx = gpxpy.parse(gpx_file)
+# 	t_gps = []
+# 	v_gps = []
+# 	c = 0
+# 	for track in gpx.tracks:
+# 		for segment in track.segments:
+# 			for point in segment.points:
+# 				point.time = replace_tzinfo(point.time)
+# 				if c == 0:
+# 					t_gps.append(point.time)
+# 					v_gps.append(0)
+# 				else:
+# 					d = distance.distance((previous_point.latitude, previous_point.longitude), (point.latitude, point.longitude)).m
+# 					t_gps.append(point.time)
+# 					v_gps.append(d/(t_gps[c]-t_gps[c-1]).total_seconds())
+# 				previous_point = point
+# 				c += 1
 
-	fig, ax = plt.subplots()
-	plt.plot_date(t_gps, v_gps, '-')
-	fig.autofmt_xdate()
+# 	fig, ax = plt.subplots()
+# 	plt.plot_date(t_gps, v_gps, '-')
+# 	fig.autofmt_xdate()
 
 
 #### Importation des données AHRS #####

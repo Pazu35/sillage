@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.signal as sg
 
 
 import gpxpy
@@ -29,6 +30,41 @@ def get_latlon_as_in_nmea_from_gpx(filename):
 
 
 
+def butter_passe_bande(fc_inf,fc_sup, fs, order):
+    nyq = 0.5 * fs
+    b, a = sg.butter(order, (fc_inf/nyq, fc_sup/nyq), btype='bandpass', analog=False)
+    return b, a
+
+
+def freq_filter(l):
+    order = 2
+    fs = 50
+    fc_inf, fc_sup = 0.2 , 0.6
+
+    #Calcul de la réponse et du filtre
+    b, a = butter_passe_bande(fc_inf, fc_sup, fs, order)
+    y = sg.lfilter(b, a , l)
+    return y
+
+
+
+def detect_points(data, seuil, delta_p):
+    detect = [i for i in range(len(data)) if data[i] > seuil]
+    i = 0
+    res = []
+    while i < len(detect) - 1:
+        data_i = detect[i]
+        while detect[i] - data_i < delta_p:
+            i+= 1
+            if i == len(detect):
+                i -= 1
+                break
+        data_t = detect[i-1]
+        i+=1
+        res += [((data_i + data_t)//2, [data_i, data_t])]
+    return res
+
+
 # Calculates Rotation Matrix given euler angles.
 def eulerAnglesToRotationMatrix(theta) :
  
@@ -50,7 +86,6 @@ def eulerAnglesToRotationMatrix(theta) :
     R = np.dot(R_z, np.dot( R_y, R_x ))
  
     return R
-
 
 
 def eulermat2angles(R):
@@ -284,28 +319,63 @@ def RK(p, vr, R , ar, wr, dt):
     return (p, vr, R)
 
 
-def plot_files(f1, gps, df1 = '', time = '', gpx = ''):
+def plot_files(f1, gps, df1 = '', time = '', gpx = '', f_point=0, l_point=-1):
 
     times, gps_times, lat, lon , altitudes = log_gps(gps)
     alignement = np.mean(gps_times - times)
     print('GPS time offset : ', alignement)
 
     t, acc1, gyr, mag, temp, rate = log_file(f1, alignement)
+
+    t_0 = t[f_point]
+    t_1 = t[l_point]
+    print('Times : ', t_0, ', ', t_1)
+    i, = np.where(times >= t_0)
+    print('Check : ', i[0], ', ', times[i[0]])
+    j, = np.where(times <= t_1)
+    print('Check : ', j[-1], ', ', times[j[-1]])
+    i = i[0]
+    j = j[-1]
+
+    lat = lat[i: j+1]
+    lon = lon[i: j+1]
+    t = t[f_point:l_point]
+    acc1 = acc1[f_point:l_point]
+
+
+
+
+    # plt.figure()
+    # plt.plot([i for i in range(len(t))], t)
+
     acc_z = (acc1[:,2])
     print("Moyenne : ", np.mean(acc_z))
     print("Ecrat type : ", np.std(acc_z))
     acc_z = np.abs(acc_z - np.mean(acc_z))/np.std(acc_z)
+
+    filtered_z = np.abs(freq_filter(acc_z))
+    filtered_z = (filtered_z - np.mean(filtered_z)) * 2.3
+
+
+
+
     detect_times = []
     if df1 != '':
         detect_times, _ = log_file_detect(df1)
 
+    detect_times = [detect_times[i] for i in range(len(detect_times)) if (t_0 < detect_times[i] < t_1) ]
     lat_x, lon_x = [], []
 
     if gpx != '':
         lat_x, lon_x = get_latlon_as_in_nmea_from_gpx(gpx)
 
-    dilat = 1.
-    time_off = 0.
+    # dilat = 1.
+    # time_off = 0.
+
+    # For the last Guerledan measures
+    time_off = 180 + alignement
+    dilat = 1.35
+
     real_time_detect = time.split(',')
     lt_time = []
     # print("Times : ", real_time_detect)
@@ -320,7 +390,14 @@ def plot_files(f1, gps, df1 = '', time = '', gpx = ''):
                 time_off += (dilat - 1)*test
             lt_time.append(value)
 
-    graph_offset = 8
+    seuil = 1.5
+    delta_p = 5.
+
+    filtered_detect = detect_points(filtered_z, seuil, delta_p)
+    # print(filtered_detect)
+
+
+    graph_offset = 6
     a = len(t)/len(lat)
     b = len(lat_x)/len(lat)
     print('Coef for correl : ', a, ', ', b)
@@ -342,6 +419,7 @@ def plot_files(f1, gps, df1 = '', time = '', gpx = ''):
     ax3.set_title('GPS track')
     ax3.legend(['Buoy', 'Boat'])
     ax4.set_title('Z accel centered')
+    ax4.set_ylim([0, 10])
 
     for i in range(len(lat)):
         ax1.cla()
@@ -349,7 +427,7 @@ def plot_files(f1, gps, df1 = '', time = '', gpx = ''):
         ax3.cla()
         ax4.cla()
 
-        new_i_x = int(np.round(i*b))
+        new_i_x = int(i*b)
         # print("Check new_i_x : ", new_i_x)
 
         ax3.plot(lat, lon, color='blue')
@@ -368,9 +446,14 @@ def plot_files(f1, gps, df1 = '', time = '', gpx = ''):
         ax2.scatter(t[new_i], acc1[:,2][new_i], color='red')
 
         ax4.plot(t, acc_z)
+        ax4.plot(t, filtered_z)
         ax4.scatter(t[new_i], acc_z[new_i], color='red')
-        ax4.scatter(detect_times, [graph_offset for i in range(len(detect_times))], color='blue')
-        ax4.scatter(lt_time, [graph_offset for i in range(len(lt_time))], color='green')
+        ax4.scatter(detect_times, [graph_offset + 6 for i in range(len(detect_times))], color='blue')
+        ax4.scatter(lt_time, [graph_offset+4 for i in range(len(lt_time))], color='green')
+        for j in range(len(filtered_detect)):
+            # print(filtered_detect[j][0])
+            # print(filtered_z[filtered_detect[j][0]])
+            ax4.scatter(t[filtered_detect[j][0]], graph_offset+2, color='purple')
 
 
 
@@ -378,8 +461,15 @@ def plot_files(f1, gps, df1 = '', time = '', gpx = ''):
         ax2.set_title('Accelerometers, x, y, z')
         ax2.legend(['X', 'Y', 'Z'])
         ax3.set_title('GPS track')
-        ax3.legend(['Buoy', 'Boat'])
+        if len(lat_x) != 0 :
+            ax3.legend(['Buoy', 'Boat at time t'])
+        else:
+            ax3.legend(['Buoy', 'Pos at time t'])
+
         ax4.set_title('Z accel centered')
+        ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered'])
+        ax4.set_ylim([-1, graph_offset + 7])
+
 
 
         plt.pause(0.001)

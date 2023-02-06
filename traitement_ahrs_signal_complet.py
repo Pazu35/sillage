@@ -8,7 +8,7 @@ import scipy.signal as sg
 
 ############################# Importation des données ##########################################""
 
-file_name_ahrs = 'Log/ahrs1_log_2023-01-19_13_34_14.log'
+file_name_ahrs = 'log/ahrs1_log_2023-01-19_13_34_14.log'
 _, acc, gyr, mag, temp, rate, T = lire_log.log(file_name_ahrs)
 
 # borne_inf = 27000
@@ -85,3 +85,4 @@ plt.plot(T, (y-np.mean(y))*100, 'g-', linewidth=2, label='filtered data')
 plt.xlabel('Time [sec]')
 plt.grid()
 plt.legend()
+plt.show()
