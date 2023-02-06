@@ -345,3 +345,29 @@ def plot_files(f1, gps, df1 = '', time = ''):
 
 
         plt.pause(0.001)
+
+        
+import gpxpy
+import gpxpy.gpx
+
+# Parsing an existing file:
+# -------------------------
+
+def convert(d):
+    d = abs(d)
+    D = int(d)
+    M = (d - D) * 60
+    return float("{0:2d}{1:7.4f}".format(D, M))
+
+def get_latlon_as_in_nmea_from_gpx(filename)
+    gpx_file = open(filename, 'r')
+
+    gpx = gpxpy.parse(gpx_file)
+    lat = []
+    lon = []
+    for track in gpx.tracks:
+        for segment in track.segments:
+            for point in segment.points:
+                lat.append(convert(point.latitude))
+                lon.append(convert(point.longitude))
+    return (lat, lon)
