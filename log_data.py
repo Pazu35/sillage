@@ -23,7 +23,7 @@ stdout, _ = out.communicate()
 portAHRS2 = stdout.split()[0]
 portAHRS2 = portAHRS2.decode("utf-8")
 
-print(portGPS, portAHRS1, portAHRS2)
+print('Port GPS : ',portGPS, '\nPorts AHRS : ', portAHRS1, ', ', portAHRS2)
 
 
 # Check usb serial port adresses !!!
@@ -50,17 +50,18 @@ print(portGPS, portAHRS1, portAHRS2)
 # go in the screen with screen -r
 # exit
 
+
+gps1 = gps.gps('/dev/' + portGPS)
+
 capt1 = classe_ahrs.AHRS('/dev/' + portAHRS1)
 capt2 = classe_ahrs.AHRS('/dev/' + portAHRS2)
 # capt3 = classe_ahrs.AHRS('/dev/ttyUSB3')
 # capt4 = classe_ahrs.AHRS('/dev/ttyUSB4')
 
-gps1 = gps.gps('/dev/' + portGPS)
 
-
-
-
+print('=============')
 print("Start logging")
+print('=============')
 # cnt = 0
 # start = time.time()
 while True:
@@ -78,4 +79,4 @@ while True:
 	# 	print(cnt%1000)
 	# cnt +=1
 
-print("Done!")
+# print("Done!")

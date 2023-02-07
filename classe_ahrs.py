@@ -11,6 +11,27 @@ import threading
 
 
 
+
+
+
+# ===============================
+
+f = open("config.txt", "r")
+lines = f.readlines()
+
+for line in lines:
+	l = line.strip().split(': ')
+	# print(l)
+	if l[0] == 'buoy_id':
+		buoy_id = l[1]
+f.close()
+# buoy_id = 'sillage2'
+print("Id : ", buoy_id)
+
+
+# ===============================
+
+
 class AHRS:
 	id_num = 1
 	def __init__(self,port, baudrate=115200):
@@ -22,7 +43,7 @@ class AHRS:
 		self.__port = port
 		self.__ser = serial.Serial(self.__port, self.__baudrate, timeout=1)
 		self.__ser.reset_input_buffer()
-		print("Serial connection for ahrs" + str(self.id) + (" ok"))
+		print("Serial connection for ahrs" + str(self.id) + " ok on port " + port)
 		self.__last_data = []
 		self.__frequency = 50.
 
@@ -33,10 +54,10 @@ class AHRS:
 
 		now = datetime.datetime.now()
 		current_time = now.strftime("_%H_%M_%S")
-		self.__file_name = '/home/sillage2/sillage_python/Sillage/log/ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time)
+		self.__file_name = '/home/'+ buoy_id + '/sillage_python/Sillage/log/'+ buoy_id +'_ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time)
 		# self.__file_name = 'test/ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time)
 		# self.__file_name = 'log/ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time)
-		print("File_name : ", self.__file_name)
+		print("File_name : ", self.__file_name, '\n')
 
 
 		self.__logger = logging.getLogger('Ahrs' + str(self.id))
@@ -48,7 +69,7 @@ class AHRS:
 
 
 		self.__logger_detec = logging.getLogger('Detect AHRS' + str(self.id))
-		self.f_handler_detec = logging.FileHandler('/home/sillage2/sillage_python/Sillage/log/detect_ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time) + '.log')
+		self.f_handler_detec = logging.FileHandler('/home/'+ buoy_id + '/sillage_python/Sillage/log/'+ buoy_id +'_detect_ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time) + '.log')
 		# self.f_handler_detec = logging.FileHandler('test/detect_ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time) + '.log')
 		self.f_handler_detec.setLevel(logging.INFO)
 		self.f_format_detec = logging.Formatter('%(asctime)s ; %(name)s ; %(message)s')
@@ -104,7 +125,8 @@ class AHRS:
 				self.__nb_mesure += 1
 				self.__last_data = data_buff
 				self.__last_z_acc = data_buff[2]
-				self.detect()
+
+				# self.detect()
 				# return self.__last_data
 		# 	else:
 		# 		return self.__last_data

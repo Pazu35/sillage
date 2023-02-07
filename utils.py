@@ -333,7 +333,7 @@ def plot_files(f1, gps, df1 = '', time = '', gpx = '', f_point=0, l_point=-1):
     i, = np.where(times >= t_0)
     print('Check : ', i[0], ', ', times[i[0]])
     j, = np.where(times <= t_1)
-    print('Check : ', j[-1], ', ', times[j[-1]])
+    print('Check : ',j[0], ', ', j[-1], ', ', times[j[-1]])
     i = i[0]
     j = j[-1]
 
