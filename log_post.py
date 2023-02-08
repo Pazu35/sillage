@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import filt
 
-from utils import log_gps, log_file, log_file_detect, plot_files, plot_files2, freq_filter, detection
+from utils import log_gps, log_file, log_file_detect, plot_files, plot_files2, freq_filter, detection, plot_buoys, plot_detections
 
 
 def detect_points(data, seuil, delta_p):
@@ -756,8 +756,120 @@ def real_time_detect_fusion(f1, f2, f3, f4, detect_f1, detect_f2, detect_f3, det
 
 
 
+def guerledan1():
+	time = '07:54:54.82, 07:55:38.65, 07:56:20.48, 07:56:59.63, 07:57:30.27, 07:58:10.93, 07:58:48.31, 07:59:20.84, 08:00:00.39, 08:00:35.97, 08:01:06.07, 08:01:40.59, 08:02:14.72, 08:02:55.85, 08:03:29.77, 08:04:05.97, 08:04:36.77, 08:05:12.87'
+	f1 = 'log/log_14_10/ahrs1_log_2022-10-14_07_44_50.log'
+	df1 = 'log/log_14_10/detect_ahrs1_log_2022-10-14_07_44_50.log'
+
+	f2 = 'log/log_14_10/ahrs2_log_2022-10-14_07_44_50.log'
+	df2 = 'log/log_14_10/detect_ahrs2_log_2022-10-14_07_44_50.log'	
+
+	gps = 'log/log_14_10/gps1_log_2022-10-14_07_44_50.log'
+
+	f_point = 25500
+	l_point = 63000
+	# Detection parameters
+	# For the last Guerledan measures
+	seuil = 1.5
+	delta_p = 180.
 
 
+	# Time dilatation parameters for this set of acquisition (Change them in the plot_files fctn:
+	# # time_off = 180 + alignement
+	# # dilat = 1.35
+	plot_files2(f1, f2, gps, seuil, delta_p, df1=df1, df2=df2, time=time, f_point=f_point, l_point=l_point, animate=False)
+
+	# real_time_detect_check(f1, df1, time=time, f_point=f_point, l_point=l_point)
+	# real_time_detect_check(f2, df2, time=time, f_point=f_point, l_point=l_point)
+	# real_time_detect_check(f3, df3, time=time, f_point=f_point, l_point=l_point)
+	# real_time_detect_check(f4, df4, time=time, f_point=f_point, l_point=l_point)
+
+	# main_post(time, f1, f2, f3, f4, f_point, l_point)
+	# real_time_detect_fusion(f1, f2, f3, f4, df1, df2, df3, df4, time = time, f_point=f_point, l_point=l_point, gps = gps)
+
+
+
+	res1, res2, interval1, interval2 = detection(f1, f2, gps, seuil, delta_p, f_point=f_point, l_point=l_point, output='Frequency')
+	# print(res1)
+	# print(res2)
+	# print(interval1)
+	# print(interval2)
+	plot_detections([res1, res2], [interval1, interval2])
+
+
+def rade1():
+	time = '13:40:00.00, 13:52:00.00, 13:58:00.00, 14:05:00.00'
+
+	f1 = 'log/log_rade/ahrs1_log_2023-01-19_13_34_14.log'
+	gps1 = 'log/log_rade/gps1_log_2023-01-19_13_34_14.log'
+	df1 = 'log/log_rade/detect_ahrs1_log_2023-01-19_13_34_14.log'
+	gpx = 'log/log_rade/2023-01-19 14_39_15.gpx'
+
+	# For the last Guerledan measures
+	seuil = 1.5
+	delta_p = 5.
+	plot_files(f1, gps1, seuil, delta_p, df1=df1, time=time, gpx=gpx)
+
+def guerledan2():
+	# time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00, 13:43:00.00, 16:11:00.00, 16:12:00.00, 16:13:00.00, 16:14:00.00, 16:15:00.00'
+	time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00'
+	f1 = 'log/guerledan2/sillage1_ahrs1_log_2023-02-07_10_45_00.log'
+
+	f2 = 'log/guerledan2/sillage1_ahrs2_log_2023-02-07_10_45_01.log'
+
+	gps = 'log/guerledan2/sillage1_gps1_log_2023-02-07_10_45_00.log'
+
+	f3 = 'log/guerledan2/sillage2_ahrs1_log_2023-02-07_10_45_03.log'
+
+	f4 = 'log/guerledan2/sillage2_ahrs2_log_2023-02-07_10_45_03.log'
+
+	gps2 = 'log/guerledan2/sillage2_gps1_log_2023-02-07_10_45_03.log'
+
+	f_point = 2900
+	l_point = 5000
+	f_point = 0
+	# For the last Guerledan measures
+	seuil = 1.5
+	delta_p = 5.
+	# l_point = -1
+	# plot_files(f1, gps, seuil, delta_p, time=time)
+	# plot_files(f2, gps, seuil, delta_p, time=time)
+
+	# plot_files2(f1, f2, gps, seuil, delta_p, time=time, f_point=f_point, l_point=l_point)
+	# plot_files2(f3, f4, gps2, seuil, delta_p, time=time, f_point=f_point, l_point=l_point)
+
+	plot_buoys(file1=[f1, f2], file2=[f3, f4], gps_files=[gps, gps2], time=time, f_point=f_point, l_point=l_point)
+
+
+def real_test1():
+	# time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00'
+	time = '15:30:30, 15:31:30, 15:32:40, 15:33:38,15:33:42, 15:35:00,15:36:10,15:36:20,15:37:17,15:37:22,15:38:35,15:38:45,15:41:20'
+	f1 = 'log/sillage1_ahrs1_log_2023-02-08_14_29_14.log'
+
+	f2 = 'log/sillage1_ahrs2_log_2023-02-08_14_29_14.log'
+
+	gps = 'log/sillage1_gps1_log_2023-02-08_14_29_14.log'
+
+	f3 = 'log/sillage2_ahrs1_log_2023-02-08_14_27_50.log'
+
+	f4 = 'log/sillage2_ahrs2_log_2023-02-08_14_27_50.log'
+
+	gps2 = 'log/sillage2_gps1_log_2023-02-08_14_27_50.log'
+
+	f_point = 500
+	l_point = 68000
+	# f_point = 0
+	# l_point = -1
+	# For the last Guerledan measures
+	seuil = 1.5
+	delta_p = 5.
+	# plot_files(f1, gps, seuil, delta_p, time=time)
+	# plot_files(f2, gps, seuil, delta_p, time=time)
+
+	# plot_files2(f1, f2, gps, seuil, delta_p, time=time, f_point=f_point, l_point=l_point)
+	# plot_files2(f3, f4, gps2, seuil, delta_p, time=time, f_point=f_point, l_point=l_point)
+
+	plot_buoys( seuil, delta_p, file1=[f1, f2], file2=[f3, f4], gps_files=[gps, gps2], time=time, f_point=f_point, l_point=l_point)
 
 
 
@@ -786,79 +898,10 @@ if __name__ == '__main__':
 	# main_post(time, f1, f2, f3, f4, f_point, l_point)
 
 
-	time = '07:54:54.82, 07:55:38.65, 07:56:20.48, 07:56:59.63, 07:57:30.27, 07:58:10.93, 07:58:48.31, 07:59:20.84, 08:00:00.39, 08:00:35.97, 08:01:06.07, 08:01:40.59, 08:02:14.72, 08:02:55.85, 08:03:29.77, 08:04:05.97, 08:04:36.77, 08:05:12.87'
-	f1 = 'log/log_14_10/ahrs1_log_2022-10-14_07_44_50.log'
-	df1 = 'log/log_14_10/detect_ahrs1_log_2022-10-14_07_44_50.log'
+	# guerledan1()
+	# rade1()
 
-	f2 = 'log/log_14_10/ahrs2_log_2022-10-14_07_44_50.log'
-	df2 = 'log/log_14_10/detect_ahrs2_log_2022-10-14_07_44_50.log'
+	# guerledan2()
 
-	# f3 = 'log/log_14_10/ahrs3_log_2022-10-14_07_44_50.log'
-	# df3 = 'log/log_14_10/detect_ahrs3_log_2022-10-14_07_44_50.log'
-
-	# f4 = 'log/log_14_10/ahrs4_log_2022-10-14_07_44_50.log'
-	# df4 = 'log/log_14_10/detect_ahrs4_log_2022-10-14_07_44_50.log'
-
-	gps = 'log/log_14_10/gps1_log_2022-10-14_07_44_50.log'
-
-	# f_point = 25500
-	# l_point = 63000
-
-	# Time dilatation parameters for this set of acquisition (Change them in the plot_files fctn:
-	# # time_off = 180 + alignement
-	# # dilat = 1.35
-	# plot_files(f1, gps, df1=df1, time=time, f_point=f_point, l_point=l_point)
-	# plot_files2(f1, f2, gps, df1=df1, df2=df2, time=time, f_point=f_point, l_point=l_point, animate=False)
-	# plot_files2(f1, f2, gps, df1=df1, df2=df2, time=time, f_point=f_point, l_point=l_point, animate=False, output='Frequency')
-
-	# real_time_detect_check(f1, df1, time=time, f_point=f_point, l_point=l_point)
-	# real_time_detect_check(f2, df2, time=time, f_point=f_point, l_point=l_point)
-	# real_time_detect_check(f3, df3, time=time, f_point=f_point, l_point=l_point)
-	# real_time_detect_check(f4, df4, time=time, f_point=f_point, l_point=l_point)
-
-	# main_post(time, f1, f2, f3, f4, f_point, l_point)
-	# real_time_detect_fusion(f1, f2, f3, f4, df1, df2, df3, df4, time = time, f_point=f_point, l_point=l_point, gps = gps)
-
-
-
-
-
-
-
-	time = '13:40:00.00, 13:52:00.00, 13:58:00.00, 14:05:00.00'
-
-	f1 = 'log/ahrs1_log_2023-01-19_13_34_14.log'
-	gps1 = 'log/gps1_log_2023-01-19_13_34_14.log'
-	df1 = 'log/detect_ahrs1_log_2023-01-19_13_34_14.log'
-	gpx = 'log/2023-01-19 14_39_15.gpx'
-
-	# plot_files(f1, gps1, df1, time, gpx)
-
-
-
-	# time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00, 13:43:00.00, 16:11:00.00, 16:12:00.00, 16:13:00.00, 16:14:00.00, 16:15:00.00'
-	time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00'
-	f1 = 'log/guerledan2/sillage1_ahrs1_log_2023-02-07_10_45_00.log'
-
-	f2 = 'log/guerledan2/sillage1_ahrs2_log_2023-02-07_10_45_01.log'
-
-	gps = 'log/guerledan2/sillage1_gps1_log_2023-02-07_10_45_00.log'
-
-	# f_point = 2900
-	# l_point = 5000
-	f_point = 0
-	l_point = -1
-	# plot_files(f1, gps, time=time)
-	# plot_files(f2, gps, time=time)
-	plot_files2(f1, f2, gps, time=time, f_point=f_point, l_point=l_point)
-
-
-	time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00'
-	f1 = 'log/guerledan2/sillage2_ahrs1_log_2023-02-07_10_45_03.log'
-
-	f2 = 'log/guerledan2/sillage2_ahrs2_log_2023-02-07_10_45_03.log'
-
-	gps = 'log/guerledan2/sillage2_gps1_log_2023-02-07_10_45_03.log'
-	# plot_files2(f1, f2, gps, time=time, f_point=f_point, l_point=l_point)
-
+	real_test1()
 	plt.show()

@@ -56,6 +56,8 @@ print('Port GPS : ',portGPS, '\nPorts AHRS : ', portAHRS1, ', ', portAHRS2)
 # And just follow the numbers
 # Close with Ctrl-a + k
 
+
+
 gps1 = gps.gps('/dev/' + portGPS)
 
 capt1 = classe_ahrs.AHRS('/dev/' + portAHRS1)

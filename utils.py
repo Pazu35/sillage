@@ -40,7 +40,7 @@ def freq_filter(l):
     order = 2
     fs = 50
     fc_inf, fc_sup = 0.2 , 0.6
-    gain = 2.3
+    gain = 4.
 
     #Calcul de la réponse et du filtre
     b, a = butter_passe_bande(fc_inf, fc_sup, fs, order)
@@ -339,7 +339,7 @@ def real_time_read(time, dilat=1., time_off = 0.):
     if real_time_detect != ['']:
         for i in real_time_detect:
             inter1 = i.split(':')
-            value = float(inter1[0])*3600 + (float(inter1[1]))*60 + float(inter1[2]) + time_off
+            value = (float(inter1[0]) - 1)*3600 + (float(inter1[1]))*60 + float(inter1[2]) + time_off
             if lt_time!= []:
                 test = np.abs(lt_time[-1] - value)
                 value = dilat*test + lt_time[-1]
@@ -352,7 +352,7 @@ def real_time_read(time, dilat=1., time_off = 0.):
 # Main post process to plot the log files and detections
 
 
-def plot_files(f1, gps, df1 = '', time = '', gpx = '', f_point=0, l_point=-1, animate=False):
+def plot_files(f1, gps, seuil, delta_p, df1 = '', time = '', gpx = '', f_point=0, l_point=-1, animate=False):
     
     # Time dilatation prameters if delay in acquisition :
     time_off = 180
@@ -362,15 +362,9 @@ def plot_files(f1, gps, df1 = '', time = '', gpx = '', f_point=0, l_point=-1, an
     # dilat = 1.
     # time_off = 0.
 
-    # For the last Guerledan measures
-    seuil = 1.5
-    delta_p = 5.
-
     # Graph parameter fo a better view of the data
     graph_offset = 6
     step = 10
-
-
 
 
     times, gps_times, lat, lon , altitudes = log_gps(gps)
@@ -534,7 +528,7 @@ def plot_files(f1, gps, df1 = '', time = '', gpx = '', f_point=0, l_point=-1, an
 
 
 
-def plot_files2(f1, f2, gps, df1='', df2='', time = '', gpx = '', f_point=0, l_point=-1, animate=False):
+def plot_files2(f1, f2, gps, seuil, delta_p, df1='', df2='', time = '', gpx = '', f_point=0, l_point=-1, animate=False):
     
     # Time dilatation prameters if delay in acquisition :
     time_off = 180
@@ -543,10 +537,6 @@ def plot_files2(f1, f2, gps, df1='', df2='', time = '', gpx = '', f_point=0, l_p
     # Detection parameters for waves detection
     # dilat = 1.
     # time_off = 0.
-
-    # For the last Guerledan measures
-    seuil = 1.5
-    delta_p = 5.
 
     # Graph parameter fo a better view of the data
     graph_offset = 6
@@ -804,12 +794,397 @@ def plot_files2(f1, f2, gps, df1='', df2='', time = '', gpx = '', f_point=0, l_p
 
 
 
+def plot_buoys( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', df2='', time = '', gpx = '', f_point=0, l_point=-1):
+    # Time dilatation prameters if delay in acquisition :
+    time_off = 0.
+    dilat = 1.
 
-def detection(f1, f2, gps, f_point =0, l_point=-1, output='Standard'):
-    # Detection parameters
-    # For the last Guerledan measures
-    seuil = 1.5
-    delta_p = 5.
+    # Detection parameters for waves detection
+    # dilat = 1.
+    # time_off = 0.
+
+    # Graph parameter fo a better view of the data
+    graph_offset = 6
+    step = 10
+
+
+    if len(file1) != 0 and len(file2) != 0 and len(gps_files)!= 0:
+        print("\n====================")
+        print("Buoy 1")
+        print("====================\n")
+        f1, f2 = file1[0], file1[1]
+        gps = gps_files[0]    
+        # Read gps log
+        times, gps_times, lat, lon , altitudes = log_gps(gps)
+        alignement = np.mean(gps_times - times)
+        print('GPS time offset : ', alignement)
+
+        # Read ahrs logs
+        t, acc1, gyr, mag, temp, rate = log_file(f1, alignement)
+        t2, acc2, gyr, mag, temp, rate = log_file(f2, alignement)
+
+        # Slicing according to the f_point and l_point, for all arrays
+        t_02 = t2[f_point]
+        t_12 = t2[l_point]
+        print('Times : ', t_02, ', ', t_12)
+        t_0 = t[f_point]
+        t_1 = t[l_point]
+        print('Times : ', t_0, ', ', t_1)
+        # delta_t_ahrs = np.mean([t_0 - t_02, t_1 - t_12])
+        delta_t_ahrs = t_0 - t_02
+        print('Delta t AHRS : ', delta_t_ahrs)
+        i, = np.where(times  >= t_0 - alignement)
+        print('Check gps slicing first : ', i[0], ', ', times[i[0]])
+        j, = np.where(times  <= t_1 - alignement)
+        print('Check gps slicing last : ',j[0], ', ', j[-1], ', ', times[j[-1]])
+        i = i[0]
+        j = j[-1]
+
+        lat = lat[i: j+1]
+        lon = lon[i: j+1]
+        altitudes = altitudes[i: j+1]
+        times = times[i: j+1]
+        t = t[f_point:l_point]
+        acc1 = acc1[f_point:l_point]
+        t2 = t2[f_point:l_point] + delta_t_ahrs
+        acc2 = acc2[f_point:l_point]
+
+        # Getting Z-axis accelerations and normalisation
+        acc_z1 = (acc1[:,2])
+        acc_z1 = np.abs(acc_z1 - np.mean(acc_z1))/np.std(acc_z1)
+
+        acc_z2 = (acc2[:,2])
+        acc_z2 = np.abs(acc_z2 - np.mean(acc_z2))/np.std(acc_z2)
+
+        # Harmonisation between the two files
+        # std1 = np.std(acc_z1)
+        # std2 = np.std(acc_z2)
+        # coef = std1/std2
+        # acc_z2 *= (1+coef)
+
+        filtered_z1 = freq_filter(acc_z1)
+        filtered_z2 = freq_filter(acc_z2)
+
+        # Getting detection times
+        detect_times1 = []
+        if df1 != '':
+            detect_times1, _ = log_file_detect(df1)
+            detect_times1 = [detect_times1[i] for i in range(len(detect_times1)) if (t_0 < detect_times1[i] < t_1) ]
+        else:
+            detect_times1 = detect_points(acc_z1, seuil, delta_p)
+            res = []
+            for j in range(len(detect_times1)):
+                res.append(t2[detect_times1[j][0]])
+            detect_times1 = res
+        
+        detect_times2 = []
+        if df2 != '':
+            detect_times2, _ = log_file_detect(df2)
+            detect_times2 = [detect_times2[i] for i in range(len(detect_times2)) if (t_0 < detect_times2[i] < t_1) ]
+        else:
+            detect_times2 = detect_points(acc_z2, seuil, delta_p)
+            res = []
+            for j in range(len(detect_times2)):
+                res.append(t2[detect_times2[j][0]])
+            detect_times2 = res
+            # print('D : ', (detect_times2))
+        
+        # Getting gps track of gpx file
+        lat_x, lon_x = [], []
+        if gpx != '':
+            lat_x, lon_x = get_latlon_as_in_nmea_from_gpx(gpx)
+
+        # Getting the timestamps
+        time_off += alignement
+        lt_time = real_time_read(time, dilat, time_off)
+
+        # Getting frequency filtered detections
+        filtered_detect1 = detect_points(filtered_z1, seuil, delta_p)
+        filtered_detect2 = detect_points(filtered_z2, seuil, delta_p)
+
+        # Coefs for graph plotting the different sizes arrays
+        a = len(t)/len(lat)
+        b = len(lat_x)/len(lat)
+
+
+        # Plt stuff for plotting 
+        f1 = plt.figure(figsize=(20,10))
+        f1.subplots_adjust(hspace=0.5)
+        f2 = plt.figure()
+
+        ax1 = f1.add_subplot(311)
+        ax2 = f1.add_subplot(323)
+        ax4 = f1.add_subplot(325)
+        ax6 = f1.add_subplot(324)
+        ax7 = f1.add_subplot(326)
+
+        ax3 = f2.add_subplot(111)
+
+        ax1.set_title('GPS Altitude buoy 1')
+        ax2.set_title('Accelerometers, x, y, z AHRS1')
+        ax4.set_title('Z accel centered AHRS1')
+        ax6.set_title('Accelerometers, x, y, z AHRS2')
+        ax7.set_title('Z accel centered AHRS2')
+
+        ax3.set_title('GPS track')
+
+        ax3.plot(lat, lon, color='blue')
+        # ax3.plot(lat_x, lon_x, color='green')
+
+        ax1.plot(times, altitudes)
+
+        ax2.plot(t, acc1)
+        ax6.plot(t2, acc2)
+
+        ax4.plot(t, acc_z1)
+        ax4.plot(t, filtered_z1)
+        ax4.plot([t_0, t_1], [seuil, seuil], color='red')
+        ax4.scatter(detect_times1, [graph_offset + 6 for i in range(len(detect_times1))], color='blue')
+        ax4.scatter(lt_time, [graph_offset+4 for i in range(len(lt_time))], color='green')
+        for j in range(len(filtered_detect1)):
+            # print(filtered_detect1[j][0])
+            # print(filtered_z1[filtered_detect1[j][0]])
+            ax4.scatter(t[filtered_detect1[j][0]], graph_offset+2, color='purple')
+
+
+        ax7.plot(t2, acc_z2)
+        ax7.plot(t2, filtered_z2)
+        ax7.plot([t_0, t_1], [seuil, seuil], color='red')
+        ax7.scatter(detect_times2, [graph_offset + 6 for i in range(len(detect_times2))], color='blue')
+        ax7.scatter(lt_time, [graph_offset+4 for i in range(len(lt_time))], color='green')
+        for j in range(len(filtered_detect2)):
+            # print(filtered_detect2[j][0])
+            # print(filtered_z2[filtered_detect2[j][0]])
+            ax7.scatter(t[filtered_detect2[j][0]], graph_offset+2, color='purple')
+
+
+
+        ax1.set_title('GPS Altitude buoy 1')
+        ax2.set_title('Accelerometers, x, y, z AHRS1')
+        ax2.legend(['X', 'Y', 'Z'])
+        ax2.set_ylim([-1, graph_offset + 7])
+        ax6.set_title('Accelerometers, x, y, z AHRS2')
+        ax6.legend(['X', 'Y', 'Z'])
+        ax6.set_ylim([-1, graph_offset + 7])
+        ax3.set_title('GPS track')
+        if len(lat_x) != 0 :
+            ax3.legend(['Buoy', 'Boat at time t'])
+        else:
+            ax3.legend(['Buoy', 'Pos at time t'])
+
+        ax4.set_title('Z accel centered AHRS1')
+        ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
+        ax4.set_ylim([-1, graph_offset + 7])
+        ax7.set_title('Z accel centered AHRS2')
+        ax7.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
+        ax7.set_ylim([-1, graph_offset + 7])
+
+
+        print("\n====================")
+        print("Buoy 2")
+        print("====================\n")
+
+
+        f1, f2 = file2[0], file2[1]
+        gps = gps_files[1]    
+        # Read gps log
+        times, gps_times, lat, lon , altitudes = log_gps(gps)
+        alignement = np.mean(gps_times - times)
+        print('GPS time offset : ', alignement)
+
+        # Read ahrs logs
+        t, acc1, gyr, mag, temp, rate = log_file(f1, alignement)
+        t2, acc2, gyr, mag, temp, rate = log_file(f2, alignement)
+
+        if f_point > len(t) or f_point > len(t2):
+            f_point = -1
+
+        if l_point > len(t) or l_point > len(t2):
+            l_point = -1
+
+
+        # Slicing according to the f_point and l_point, for all arrays
+        t_02 = t2[f_point]
+        t_12 = t2[l_point]
+        print('Times : ', t_02, ', ', t_12)
+        t_0 = t[f_point]
+        t_1 = t[l_point]
+        print('Times : ', t_0, ', ', t_1)
+        # delta_t_ahrs = np.mean([t_0 - t_02, t_1 - t_12])
+        delta_t_ahrs = t_0 - t_02
+        print('Delta t AHRS : ', delta_t_ahrs)
+        i, = np.where(times  >= t_0 - alignement)
+        j, = np.where(times  <= t_1 - alignement)
+        # print(i)
+        # print(j)
+        if len(i) == 0:
+            i = [-1]
+            print("Warning ! log of buoy 2 stopped first ! ")
+
+        # print(i)
+        # print(j)
+        print('Check gps slicing first : ', i[0], ', ', times[i[0]])
+        print('Check gps slicing last : ',j[0], ', ', j[-1], ', ', times[j[-1]])
+        i = i[0]
+        j = j[-1]
+
+        lat = lat[i: j+1]
+        lon = lon[i: j+1]
+        altitudes = altitudes[i: j+1]
+        times = times[i: j+1]
+        t = t[f_point:l_point]
+        acc1 = acc1[f_point:l_point]
+        t2 = t2[f_point:l_point] + delta_t_ahrs
+        acc2 = acc2[f_point:l_point]
+
+        # Getting Z-axis accelerations and normalisation
+        acc_z1 = (acc1[:,2])
+        acc_z1 = np.abs(acc_z1 - np.mean(acc_z1))/np.std(acc_z1)
+
+        acc_z2 = (acc2[:,2])
+        acc_z2 = np.abs(acc_z2 - np.mean(acc_z2))/np.std(acc_z2)
+
+        # Harmonisation between the two files
+        # std1 = np.std(acc_z1)
+        # std2 = np.std(acc_z2)
+        # coef = std1/std2
+        # acc_z2 *= (1+coef)
+
+        filtered_z1 = freq_filter(acc_z1)
+        filtered_z2 = freq_filter(acc_z2)
+
+        # Getting detection times
+        detect_times1 = []
+        if df1 != '':
+            detect_times1, _ = log_file_detect(df1)
+            detect_times1 = [detect_times1[i] for i in range(len(detect_times1)) if (t_0 < detect_times1[i] < t_1) ]
+        else:
+            detect_times1 = detect_points(acc_z1, seuil, delta_p)
+            res = []
+            for j in range(len(detect_times1)):
+                res.append(t[detect_times1[j][0]])
+            detect_times1 = res
+        
+        detect_times2 = []
+        if df2 != '':
+            detect_times2, _ = log_file_detect(df2)
+            detect_times2 = [detect_times2[i] for i in range(len(detect_times2)) if (t_0 < detect_times2[i] < t_1) ]
+        else:
+            detect_times2 = detect_points(acc_z2, seuil, delta_p)
+            res = []
+            for j in range(len(detect_times2)):
+                res.append(t2[detect_times2[j][0]])
+            detect_times2 = res
+            # print('D : ', (detect_times2))
+        
+        # Getting gps track of gpx file
+        lat_x, lon_x = [], []
+        if gpx != '':
+            lat_x, lon_x = get_latlon_as_in_nmea_from_gpx(gpx)
+
+        # Getting the timestamps
+        time_off += alignement
+        lt_time = real_time_read(time, dilat, time_off)
+
+        # Getting frequency filtered detections
+        filtered_detect1 = detect_points(filtered_z1, seuil, delta_p)
+        filtered_detect2 = detect_points(filtered_z2, seuil, delta_p)
+
+        # Coefs for graph plotting the different sizes arrays
+        a = len(t)/len(lat)
+        b = len(lat_x)/len(lat)
+
+
+        # Plt stuff for plotting 
+        f3 = plt.figure(figsize=(20,10))
+        f3.subplots_adjust(hspace=0.5)
+
+        ax1 = f3.add_subplot(311)
+        ax2 = f3.add_subplot(323)
+        ax4 = f3.add_subplot(325)
+        ax6 = f3.add_subplot(324)
+        ax7 = f3.add_subplot(326)
+
+
+        ax1.set_title('GPS Altitude buoy 2')
+        ax2.set_title('Accelerometers, x, y, z AHRS1')
+        ax4.set_title('Z accel centered AHRS1')
+        ax6.set_title('Accelerometers, x, y, z AHRS2')
+        ax7.set_title('Z accel centered AHRS2')
+
+        ax3.plot(lat, lon, color='purple')
+        # ax3.plot(lat_x, lon_x, color='green')
+
+        ax1.plot(times, altitudes)
+
+        ax2.plot(t, acc1)
+        ax6.plot(t2, acc2)
+
+        ax4.plot(t, acc_z1)
+        ax4.plot(t, filtered_z1)
+        ax4.plot([t_0, t_1], [seuil, seuil], color='red')
+        ax4.scatter(detect_times1, [graph_offset + 6 for i in range(len(detect_times1))], color='blue')
+        ax4.scatter(lt_time, [graph_offset+4 for i in range(len(lt_time))], color='green')
+        for j in range(len(filtered_detect1)):
+            # print(filtered_detect1[j][0])
+            # print(filtered_z1[filtered_detect1[j][0]])
+            ax4.scatter(t[filtered_detect1[j][0]], graph_offset+2, color='purple')
+
+
+        ax7.plot(t2, acc_z2)
+        ax7.plot(t2, filtered_z2)
+        ax7.plot([t_0, t_1], [seuil, seuil], color='red')
+        ax7.scatter(detect_times2, [graph_offset + 6 for i in range(len(detect_times2))], color='blue')
+        ax7.scatter(lt_time, [graph_offset+4 for i in range(len(lt_time))], color='green')
+        for j in range(len(filtered_detect2)):
+            # print(filtered_detect2[j][0])
+            # print(filtered_z2[filtered_detect2[j][0]])
+            ax7.scatter(t[filtered_detect2[j][0]], graph_offset+2, color='purple')
+
+
+
+        ax1.set_title('GPS Altitude buoy 2')
+        ax2.set_title('Accelerometers, x, y, z AHRS1')
+        ax2.legend(['X', 'Y', 'Z'])
+        ax2.set_ylim([-1, graph_offset + 7])
+        ax6.set_title('Accelerometers, x, y, z AHRS2')
+        ax6.legend(['X', 'Y', 'Z'])
+        ax6.set_ylim([-1, graph_offset + 7])
+        ax3.set_title('GPS track')
+        ax3.legend(['Buoy 1', 'Buoy 2'])
+
+        ax4.set_title('Z accel centered AHRS1')
+        ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
+        ax4.set_ylim([-1, graph_offset + 7])
+        ax7.set_title('Z accel centered AHRS2')
+        ax7.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
+        ax7.set_ylim([-1, graph_offset + 7])
+
+    else:
+        print("Wrong data type ! Please put in lists !")
+
+def plot_detections(t=[], intervals=[]):
+
+    assert(len(t) == len(intervals))
+
+
+    f1 = plt.figure(figsize=(20,10))
+    f1.subplots_adjust(hspace=0.5)
+
+    l_t = len(t)
+    for i in range(l_t):
+        subplot = 100*l_t + 10 + i + 1
+        # print(subplot)
+        ax = f1.add_subplot(subplot)
+        ax.scatter(t[i], [0 for i in range(len(t[i]))], color='red')
+        for j in intervals[i]:
+            ax.plot([j[0], j[1]], [0,0], color='blue')
+        ax.set_title("Detection times and intervals of " + str(i+1))
+
+# ====================     
+# Main functions for detections :
+
+def detection(f1, f2, gps, seuil, delta_p, f_point =0, l_point=-1, output='Standard'):
 
     # Read gps log
     times, gps_times, lat, lon , altitudes = log_gps(gps)
@@ -837,27 +1212,25 @@ def detection(f1, f2, gps, f_point =0, l_point=-1, output='Standard'):
     acc_z2 = np.abs(acc_z2 - np.mean(acc_z2))/np.std(acc_z2)
 
     # Harmonisation between the two files
-    std1 = np.std(acc_z1)
-    std2 = np.std(acc_z2)
-    coef = std1/std2
-    acc_z2 *= (1+coef)
-
+    # std1 = np.std(acc_z1)
+    # std2 = np.std(acc_z2)
+    # coef = std1/std2
+    # acc_z2 *= (1+coef)
+    res1, res2 = [], []
+    interval1, interval2 = [], []
     if output == 'Standard':
         # Getting detection times
         detect_times1 = detect_points(acc_z1, seuil, delta_p)
-        res = []
         for j in range(len(detect_times1)):
-            res.append(t[detect_times1[j][0]])
-        detect_times1 = res
-
+            res1.append(t[detect_times1[j][0]])
+            interval1.append([t[detect_times1[j][1][0]], t[detect_times1[j][1][1]]])
 
         detect_times2 = detect_points(acc_z2, seuil, delta_p)
-        res = []
         for j in range(len(detect_times2)):
-            res.append(t[detect_times2[j][0]])
-        detect_times2 = res
+            res2.append(t[detect_times2[j][0]])
+            interval2.append([t[detect_times2[j][1][0]], t[detect_times2[j][1][1]]])
 
-        return detect_times1, detect_times2
+        return res1, res2, interval1, interval2
     
     elif output == 'Frequency':
         # Getting frequency filtered detections
@@ -866,24 +1239,20 @@ def detection(f1, f2, gps, f_point =0, l_point=-1, output='Standard'):
         filtered_detect1 = detect_points(filtered_z1, seuil, delta_p)
         filtered_detect2 = detect_points(filtered_z2, seuil, delta_p)
 
-        res = []
         for j in range(len(filtered_detect1)):
-            res.append(t[filtered_detect1[j][0]])
-        filtered_detect1 = res
+            res1.append(t[filtered_detect1[j][0]])
+            interval1.append([t[filtered_detect1[j][1][0]], t[filtered_detect1[j][1][1]]])
 
 
-        res = []
         for j in range(len(filtered_detect2)):
-            res.append(t[filtered_detect2[j][0]])
-        filtered_detect2 = res
+            res2.append(t[filtered_detect2[j][0]])
+            interval2.append([t[filtered_detect2[j][1][0]], t[filtered_detect2[j][1][1]]])
 
 
-
-        return filtered_detect1, filtered_detect2
+        return res1, res2, interval1, interval2
     else:
         print('Output parameter invalid !')
-        return [], []
-
+        return [], [], [], []
 
 
 
