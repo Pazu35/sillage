@@ -32,7 +32,7 @@ class gps:
 
 		self.__baudrate = baudrate
 		self.__port = port
-		self.__ser = serial.Serial(self.__port, self.__baudrate, timeout=0.1)
+		self.__ser = serial.Serial(self.__port, self.__baudrate, timeout=1)
 		self.__ser.reset_input_buffer()
 
 		print("Serial connection for gps" + str(self.id) + " ok on port " + port)
@@ -56,7 +56,7 @@ class gps:
 		self.__logger.addHandler(self.f_handler)
 
 
-		self.__thread = threading.Thread(target=self.run, name='GPS' + str(self.id))
+		self.__thread = threading.Thread(target=self.run, name='GPS' + str(self.id), daemon=True)
 
 		self.__thread.start()
 
@@ -67,6 +67,7 @@ class gps:
 
 
 	def run(self):
+		self.__ser.reset_input_buffer()
 		while True:
 			self.get_data()
 
@@ -87,9 +88,12 @@ class gps:
 					# print('GPS : ', line)
 					self.__last_data = line
 					self.__logger.error(line)
+					self.__ser.reset_input_buffer()
+
 					# return line
 
 			except:
 				print("Erreur gps ", self.id)
 				# return self.__last_data
+				self.__ser.reset_input_buffer()
 				pass

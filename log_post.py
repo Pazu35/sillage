@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import filt
 
-from utils import log_gps, log_file, log_file_detect, plot_files
+from utils import log_gps, log_file, log_file_detect, plot_files, plot_files2, freq_filter, detection
 
 
 def detect_points(data, seuil, delta_p):
@@ -20,7 +20,6 @@ def detect_points(data, seuil, delta_p):
 		i+=1
 		res += [((data_i + data_t)//2, [data_i, data_t])]
 	return res
-
 
 
 def group_list_elements(l, proximity):
@@ -117,8 +116,6 @@ def delta_time(detect1, detect2, detect3, proximity):
 	return detection_time, times
 
 
-
-
 def delta_time_list(detects, proximity):
 	n_list = []
 	counters = []
@@ -185,7 +182,6 @@ def delta_time_list(detects, proximity):
 			break
 
 	return detection_time, times
-
 
 
 def angles(delta_t, f):
@@ -442,7 +438,7 @@ def main_post(str_temps, str_f1, str_f2, str_f3, str_f4, f_point =0, l_point = -
 	plt.show()
 
 
-def real_time_test(f1, time,	f_point = 0, l_point = -1):
+def real_time_test(f1, time, f_point = 0, l_point = -1):
 
 
 
@@ -527,7 +523,7 @@ def real_time_test(f1, time,	f_point = 0, l_point = -1):
 		plt.axvline(i, color='red')
 	plt.show()
 
-def real_time_detect_check(f1, detect_f1, time = '',	f_point = 0, l_point = -1):
+def real_time_detect_check(f1, detect_f1, time = '', f_point = 0, l_point = -1):
 	t, acc, gyr, mag, temp, rate = log_file(f1)
 	Hz = int(np.round(np.mean(rate)))
 	print("Rate : ", Hz)
@@ -794,8 +790,8 @@ if __name__ == '__main__':
 	f1 = 'log/log_14_10/ahrs1_log_2022-10-14_07_44_50.log'
 	df1 = 'log/log_14_10/detect_ahrs1_log_2022-10-14_07_44_50.log'
 
-	# f2 = 'log/log_14_10/ahrs2_log_2022-10-14_07_44_50.log'
-	# df2 = 'log/log_14_10/detect_ahrs2_log_2022-10-14_07_44_50.log'
+	f2 = 'log/log_14_10/ahrs2_log_2022-10-14_07_44_50.log'
+	df2 = 'log/log_14_10/detect_ahrs2_log_2022-10-14_07_44_50.log'
 
 	# f3 = 'log/log_14_10/ahrs3_log_2022-10-14_07_44_50.log'
 	# df3 = 'log/log_14_10/detect_ahrs3_log_2022-10-14_07_44_50.log'
@@ -805,11 +801,15 @@ if __name__ == '__main__':
 
 	gps = 'log/log_14_10/gps1_log_2022-10-14_07_44_50.log'
 
-	f_point = 25500
-	l_point = 63000
+	# f_point = 25500
+	# l_point = 63000
+
+	# Time dilatation parameters for this set of acquisition (Change them in the plot_files fctn:
 	# # time_off = 180 + alignement
 	# # dilat = 1.35
-	plot_files(f1, gps, df1, time, f_point=f_point, l_point=l_point)
+	# plot_files(f1, gps, df1=df1, time=time, f_point=f_point, l_point=l_point)
+	# plot_files2(f1, f2, gps, df1=df1, df2=df2, time=time, f_point=f_point, l_point=l_point, animate=False)
+	# plot_files2(f1, f2, gps, df1=df1, df2=df2, time=time, f_point=f_point, l_point=l_point, animate=False, output='Frequency')
 
 	# real_time_detect_check(f1, df1, time=time, f_point=f_point, l_point=l_point)
 	# real_time_detect_check(f2, df2, time=time, f_point=f_point, l_point=l_point)
@@ -835,49 +835,30 @@ if __name__ == '__main__':
 	# plot_files(f1, gps1, df1, time, gpx)
 
 
-	# times, gps_times, lat, lon , altitudes = log_gps(gps1)
-	# # times2, _, lat2, lon2 , _ = log_gps(gps)
-	# # times3, _, lat3, lon3 , _ = log_gps(gps3)
-	# alignement = np.mean(gps_times - times)
-	# print('GPS time offset : ', alignement)
 
-	# t, acc1, gyr, mag, temp, rate = log_file(f1, alignement)
+	# time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00, 13:43:00.00, 16:11:00.00, 16:12:00.00, 16:13:00.00, 16:14:00.00, 16:15:00.00'
+	time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00'
+	f1 = 'log/guerledan2/sillage1_ahrs1_log_2023-02-07_10_45_00.log'
 
-	# plt.figure()
-	# plt.subplot(211)
-	# plt.plot(times, altitudes)
-	# plt.subplot(212)
-	# plt.plot(t,acc1)
-	# plt.figure()
-	# for i in range(len(lat)):
-	# 	plt.cla()
-	# 	plt.plot(lat, lon, color='blue')
-	# 	# plt.plot(lat2, lon2, color='green')
-	# 	# plt.plot(lat3, lon3, color='purple')
-	# 	# plt.scatter(lat2[i], lon2[i], color='red')
-	# 	plt.scatter(lat[i], lon[i], color='red')
-	# 	plt.pause(0.001)
+	f2 = 'log/guerledan2/sillage1_ahrs2_log_2023-02-07_10_45_01.log'
+
+	gps = 'log/guerledan2/sillage1_gps1_log_2023-02-07_10_45_00.log'
+
+	# f_point = 2900
+	# l_point = 5000
+	f_point = 0
+	l_point = -1
+	# plot_files(f1, gps, time=time)
+	# plot_files(f2, gps, time=time)
+	plot_files2(f1, f2, gps, time=time, f_point=f_point, l_point=l_point)
 
 
+	time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00'
+	f1 = 'log/guerledan2/sillage2_ahrs1_log_2023-02-07_10_45_03.log'
 
-	# print(np.mean(gps_times - times))
-	# print(times)
-	# print(gps_times)
-	# print(lat)
-	# print(lon)
-	# print(altitudes)
+	f2 = 'log/guerledan2/sillage2_ahrs2_log_2023-02-07_10_45_03.log'
 
-	# df1 = 'log/detect_ahrs1_log_2023-01-19_13_34_14.log'
-	# # print(log_file_detect(df1))
-	# detect_times1, _ = log_file_detect(df1)
-
-	# time = ''
-	# # f1 = 'log/ahrs1_log_2022-11-18_08_41_39.log'
-	# f_point = 0
-	# l_point = -1
-	# real_time_test(f1, time, f_point, l_point)
-	# # main_post(time, f1, f2, f3, f4, f_point, l_point)
-	# real_time_detect_check(f1, df1)
-	# plt.show()
+	gps = 'log/guerledan2/sillage2_gps1_log_2023-02-07_10_45_03.log'
+	# plot_files2(f1, f2, gps, time=time, f_point=f_point, l_point=l_point)
 
 	plt.show()

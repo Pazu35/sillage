@@ -50,6 +50,11 @@ print('Port GPS : ',portGPS, '\nPorts AHRS : ', portAHRS1, ', ', portAHRS2)
 # go in the screen with screen -r
 # exit
 
+# To setup the AHRS rates, run : 
+# screen /dev/ttyUSB0 115200    // Make sure the port and baudrate are right !
+# When you see the logging in the terminal, press q
+# And just follow the numbers
+# Close with Ctrl-a + k
 
 gps1 = gps.gps('/dev/' + portGPS)
 
@@ -64,19 +69,22 @@ print("Start logging")
 print('=============')
 # cnt = 0
 # start = time.time()
+# while time.time()- start < 4*60 :
 while True:
 	# st = time.time()
-	d1 = capt1.last_data
-	d2 = capt2.last_data
-	# d3 = capt3.last_data
-	# d4 = capt4.last_data
+
+	# d1 = capt1.last_data
+	# d2 = capt2.last_data
+	d1 = capt1.get_data()
+	d2 = capt2.get_data()
+
 	l = gps1.last_data
+	# l = gps1.get_data()
+
 	# lp_t = time.time() - st
-	# if lp_t > 1/50.:
+	# if lp_t > 1/10.:
 	# 	cnt += 1
 	# 	print("loop time : ", lp_t, ' and count : ', cnt)
-	# if cnt%1000 == 0 : 
-	# 	print(cnt%1000)
-	# cnt +=1
 
-# print("Done!")
+
+print("Done!")

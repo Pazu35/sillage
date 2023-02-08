@@ -68,15 +68,15 @@ class AHRS:
 		self.__logger.addHandler(self.f_handler)
 
 
-		self.__logger_detec = logging.getLogger('Detect AHRS' + str(self.id))
-		self.f_handler_detec = logging.FileHandler('/home/'+ buoy_id + '/sillage_python/Sillage/log/'+ buoy_id +'_detect_ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time) + '.log')
-		# self.f_handler_detec = logging.FileHandler('test/detect_ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time) + '.log')
-		self.f_handler_detec.setLevel(logging.INFO)
-		self.f_format_detec = logging.Formatter('%(asctime)s ; %(name)s ; %(message)s')
-		self.f_handler_detec.setFormatter(self.f_format_detec)
-		self.__logger_detec.addHandler(self.f_handler_detec)
+		# self.__logger_detec = logging.getLogger('Detect AHRS' + str(self.id))
+		# self.f_handler_detec = logging.FileHandler('/home/'+ buoy_id + '/sillage_python/Sillage/log/'+ buoy_id +'_detect_ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time) + '.log')
+		# # self.f_handler_detec = logging.FileHandler('test/detect_ahrs'+ str(self.id) + '_log_' + str(datetime.date.today())+ str(current_time) + '.log')
+		# self.f_handler_detec.setLevel(logging.INFO)
+		# self.f_format_detec = logging.Formatter('%(asctime)s ; %(name)s ; %(message)s')
+		# self.f_handler_detec.setFormatter(self.f_format_detec)
+		# self.__logger_detec.addHandler(self.f_handler_detec)
 
-		self.__realtime_detect = filt.MovingAverageFilter(40*self.__frequency)
+		# self.__realtime_detect = filt.MovingAverageFilter(40*self.__frequency)
 
 
 		self.__res1 = []
@@ -87,9 +87,9 @@ class AHRS:
 
 		self.__last_detection_time = self.__start_time - time.time()
 
-		self.__thread = threading.Thread(target=self.run, name='AHRS' + str(self.id))
+		# self.__thread = threading.Thread(target=self.run, name='AHRS' + str(self.id))
 
-		self.__thread.start()
+		# self.__thread.start()
 
 
 	@property
@@ -119,12 +119,16 @@ class AHRS:
 				self.__logger.error(string)
 			except:
 				print("Erreur ahrs ", self.id)
+				# self.__ser.reset_input_buffer()
+
 				pass
 
 			if len(data_buff) == 11:
 				self.__nb_mesure += 1
 				self.__last_data = data_buff
 				self.__last_z_acc = data_buff[2]
+				# self.__ser.reset_input_buffer()
+
 
 				# self.detect()
 				# return self.__last_data
@@ -134,39 +138,39 @@ class AHRS:
 		# 	return self.__last_data
 
 
-	def detect(self):
-		value_i = self.__last_z_acc
-		mean = self.__realtime_detect.fir_radar(value_i)
-		seuil = np.std(np.array(self.__realtime_detect.data))*self.__param_seuil
+	# def detect(self):
+	# 	value_i = self.__last_z_acc
+	# 	mean = self.__realtime_detect.fir_radar(value_i)
+	# 	seuil = np.std(np.array(self.__realtime_detect.data))*self.__param_seuil
 
 
-		if np.abs(value_i - mean) > seuil:
+	# 	if np.abs(value_i - mean) > seuil:
 			
 
-			# Grouping close by values
-			if self.__res2 == []:
-				self.__res2.append(self.__nb_mesure)
-			elif self.__nb_mesure - self.__res2[-1] < self.__proximity:
-				self.__res2.append(self.__nb_mesure)
-				self.__last_detection_time = time.time() - self.__start_time #Reset the timer when detected above threshold
+	# 		# Grouping close by values
+	# 		if self.__res2 == []:
+	# 			self.__res2.append(self.__nb_mesure)
+	# 		elif self.__nb_mesure - self.__res2[-1] < self.__proximity:
+	# 			self.__res2.append(self.__nb_mesure)
+	# 			self.__last_detection_time = time.time() - self.__start_time #Reset the timer when detected above threshold
 
-			# When done grouping, get the average for detection time
-			else :
-				self.t_detect = int(np.round(np.mean(np.array(self.__res2))))
-				# print("AHRS " + str(self.id) + " detected wave at t = " + str(self.__last_detection_time))
-				self.__logger_detec.error(str(self.__last_detection_time))
-				self.__res1.append([self.t_detect, [self.__res2[0], self.__res2[-1]]])
+	# 		# When done grouping, get the average for detection time
+	# 		else :
+	# 			self.t_detect = int(np.round(np.mean(np.array(self.__res2))))
+	# 			# print("AHRS " + str(self.id) + " detected wave at t = " + str(self.__last_detection_time))
+	# 			self.__logger_detec.error(str(self.__last_detection_time))
+	# 			self.__res1.append([self.t_detect, [self.__res2[0], self.__res2[-1]]])
 
-				self.__last_detection_time = time.time() - self.__start_time
-				self.__res2 = [self.__nb_mesure]
+	# 			self.__last_detection_time = time.time() - self.__start_time
+	# 			self.__res2 = [self.__nb_mesure]
 
-		if time.time()- self.__start_time - self.__last_detection_time > 2.0 and self.__res2 != []:
-				self.__last_detection_time = time.time() - self.__start_time
-				self.t_detect = int(np.round(np.mean(np.array(self.__res2))))
-				# print("AHRS " + str(self.id) + " detected wave at t = " + str(self.__last_detection_time))
-				self.__logger_detec.error(str(self.__last_detection_time))
-				self.__res1.append([self.t_detect, [self.__res2[0], self.__res2[-1]]])
-				self.__res2 = []
+	# 	if time.time()- self.__start_time - self.__last_detection_time > 2.0 and self.__res2 != []:
+	# 			self.__last_detection_time = time.time() - self.__start_time
+	# 			self.t_detect = int(np.round(np.mean(np.array(self.__res2))))
+	# 			# print("AHRS " + str(self.id) + " detected wave at t = " + str(self.__last_detection_time))
+	# 			self.__logger_detec.error(str(self.__last_detection_time))
+	# 			self.__res1.append([self.t_detect, [self.__res2[0], self.__res2[-1]]])
+	# 			self.__res2 = []
 
 
 
