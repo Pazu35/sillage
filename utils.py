@@ -50,7 +50,6 @@ def freq_filter(l):
 
 # ====================
 
-
 # Detection function with a set of data, a threshold and a delta_p for grouping
 def detect_points(data, seuil, delta_p):
     detect = [i for i in range(len(data)) if data[i] > seuil]
@@ -527,7 +526,6 @@ def plot_files(f1, gps, seuil, delta_p, df1 = '', time = '', gpx = '', f_point=0
         ax4.set_ylim([-1, graph_offset + 7])
 
 
-
 def plot_files2(f1, f2, gps, seuil, delta_p, df1='', df2='', time = '', gpx = '', f_point=0, l_point=-1, animate=False):
     
     # Time dilatation prameters if delay in acquisition :
@@ -791,7 +789,6 @@ def plot_files2(f1, f2, gps, seuil, delta_p, df1='', df2='', time = '', gpx = ''
         ax7.set_title('Z accel centered AHRS2')
         ax7.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax7.set_ylim([-1, graph_offset + 7])
-
 
 
 def plot_buoys( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', df2='', time = '', gpx = '', f_point=0, l_point=-1):
@@ -1253,7 +1250,6 @@ def detection(f1, f2, gps, seuil, delta_p, f_point =0, l_point=-1, output='Stand
     else:
         print('Output parameter invalid !')
         return [], [], [], []
-
 
 
 def get_gps_pos(detections, gps):
