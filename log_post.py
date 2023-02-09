@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import filt
 
-from utils import log_gps, log_file, log_file_detect, plot_files, plot_files2, freq_filter, detection, plot_buoys, plot_detections
-
+# from utils import log_gps, log_file, log_file_detect, plot_files, plot_files2, freq_filter, detection, plot_buoys, plot_detections, get_time_from_point, cvt_time, find_index, plot_buoys2, detection2
+from utils import *
 
 def detect_points(data, seuil, delta_p):
 	detect = [i for i in range(len(data)) if data[i] > seuil]
@@ -856,21 +856,40 @@ def real_test1():
 
 	gps2 = 'log/sillage2_gps1_log_2023-02-08_14_27_50.log'
 
-	f_point = 500
-	l_point = 68000
+	# f_point = 500
+	# l_point = 68000
 	# l_point = 10000
 	# f_point = 0
 	# l_point = -1
+	t_begin = '15:30:20'
+	t_last='15:43:00'
 	# For the last Guerledan measures
 	seuil = 1.5
-	delta_p = 5.
+	delta_p = 180.
 	# plot_files(f1, gps, seuil, delta_p, time=time)
 	# plot_files(f2, gps, seuil, delta_p, time=time)
 
 	# plot_files2(f1, f2, gps, seuil, delta_p, time=time, f_point=f_point, l_point=l_point)
 	# plot_files2(f3, f4, gps2, seuil, delta_p, time=time, f_point=f_point, l_point=l_point)
 
-	plot_buoys( seuil, delta_p, file1=[f1, f2], file2=[f3, f4], gps_files=[gps, gps2], time=time, f_point=f_point, l_point=l_point)
+	plot_buoys2(seuil, delta_p, file1=[f1, f2], file2=[f3, f4], gps_files=[gps, gps2], time=time, t_begin=t_begin, t_last=t_last)
+
+	print('\nDetection buoy 1')
+	res1, res2, interval1, interval2 = detection2(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# plot_detections([res1, res2], [interval1, interval2])
+	gps_box1, gps_box2 = get_gps_intervals(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# print(gps_box1)
+	write_in_csv('ahrs1', interval1, gps_box1)
+	write_in_csv('ahrs2', interval2, gps_box2)
+
+	
+	print('\nDetection buoy 2')
+	res3, res4, interval3, interval4 = detection2(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# plot_detections([res3, res4], [interval3, interval4])
+	gps_box3, gps_box4 = get_gps_intervals(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# print(gps_box3)
+	write_in_csv('ahrs3', interval3, gps_box3)
+	write_in_csv('ahrs4', interval4, gps_box4)
 
 
 
