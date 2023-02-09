@@ -1198,11 +1198,14 @@ def plot_buoys( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', df
     else:
         print("Wrong data type ! Please put in lists !")
 
-def plot_detections(t=[], intervals=[]):
+def plot_detections(t=[], intervals=[], t0 = '', t1=''):
 
     assert(len(t) == len(intervals))
 
-
+    if t0 == '':
+        t0 = t[0]
+    if t1 == '':
+        t1 = t[1]
     f1 = plt.figure(figsize=(20,10))
     f1.subplots_adjust(hspace=0.5)
 
@@ -1215,7 +1218,7 @@ def plot_detections(t=[], intervals=[]):
         for j in intervals[i]:
             ax.plot([j[0], j[1]], [0,0], color='blue')
         ax.set_title("Detection times and intervals of " + str(i+1))
-
+        ax.set_xlim([t0, t1])
 
 
 
@@ -1656,7 +1659,6 @@ def detection(f1, f2, gps, seuil, delta_p, f_point =0, l_point=-1, output='Stand
 
 
 
-
 def detection2(f1, f2, gps, seuil, delta_p, t_begin =0, t_last=-1, output='Standard'):
 
     # Read gps log
@@ -1741,7 +1743,6 @@ def detection2(f1, f2, gps, seuil, delta_p, t_begin =0, t_last=-1, output='Stand
     else:
         print('Output parameter invalid !')
         return [], [], [], []
-
 
 
 

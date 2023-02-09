@@ -862,7 +862,7 @@ def real_test1():
 	# f_point = 0
 	# l_point = -1
 	t_begin = '15:30:20'
-	t_last='15:43:00'
+	t_last='17:20:00'
 	# For the last Guerledan measures
 	seuil = 1.5
 	delta_p = 180.
@@ -874,22 +874,24 @@ def real_test1():
 
 	plot_buoys2(seuil, delta_p, file1=[f1, f2], file2=[f3, f4], gps_files=[gps, gps2], time=time, t_begin=t_begin, t_last=t_last)
 
+
+	t0, t1 = cvt_time(t_begin, t_last)
 	print('\nDetection buoy 1')
 	res1, res2, interval1, interval2 = detection2(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
-	# plot_detections([res1, res2], [interval1, interval2])
+	plot_detections([res1, res2], [interval1, interval2], t0, t1)
 	gps_box1, gps_box2 = get_gps_intervals(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
 	# print(gps_box1)
-	write_in_csv('ahrs1', interval1, gps_box1)
-	write_in_csv('ahrs2', interval2, gps_box2)
+	write_in_csv('test_complet_ahrs1', interval1, gps_box1)
+	write_in_csv('test_complet_ahrs2', interval2, gps_box2)
 
-	
+
 	print('\nDetection buoy 2')
 	res3, res4, interval3, interval4 = detection2(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
-	# plot_detections([res3, res4], [interval3, interval4])
+	plot_detections([res3, res4], [interval3, interval4], t0, t1)
 	gps_box3, gps_box4 = get_gps_intervals(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
 	# print(gps_box3)
-	write_in_csv('ahrs3', interval3, gps_box3)
-	write_in_csv('ahrs4', interval4, gps_box4)
+	write_in_csv('test_complet_ahrs3', interval3, gps_box3)
+	write_in_csv('test_complet_ahrs4', interval4, gps_box4)
 
 
 
