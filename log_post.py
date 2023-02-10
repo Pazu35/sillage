@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import filt
 
-# from utils import log_gps, log_file, log_file_detect, plot_files, plot_files2, freq_filter, detection, plot_buoys, plot_detections, get_time_from_point, cvt_time, find_index, plot_buoys2, detection2
 from utils import *
 
 def detect_points(data, seuil, delta_p):
@@ -755,7 +754,6 @@ def real_time_detect_fusion(f1, f2, f3, f4, detect_f1, detect_f2, detect_f3, det
 	plt.title('Fusion of detection datas', color='red')
 
 
-
 def guerledan1():
 	time = '07:54:54.82, 07:55:38.65, 07:56:20.48, 07:56:59.63, 07:57:30.27, 07:58:10.93, 07:58:48.31, 07:59:20.84, 08:00:00.39, 08:00:35.97, 08:01:06.07, 08:01:40.59, 08:02:14.72, 08:02:55.85, 08:03:29.77, 08:04:05.97, 08:04:36.77, 08:05:12.87'
 	f1 = 'log/log_14_10/ahrs1_log_2022-10-14_07_44_50.log'
@@ -810,7 +808,7 @@ def rade1():
 	delta_p = 5.
 	plot_files(f1, gps1, seuil, delta_p, df1=df1, time=time, gpx=gpx)
 
-def guerledan2():
+def guerledan2_fail():
 	# time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00, 13:43:00.00, 16:11:00.00, 16:12:00.00, 16:13:00.00, 16:14:00.00, 16:15:00.00'
 	time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00'
 	f1 = 'log/guerledan2/sillage1_ahrs1_log_2023-02-07_10_45_00.log'
@@ -843,7 +841,8 @@ def guerledan2():
 
 def real_test1():
 	# time = '11:09:00.00, 11:10:00.00, 11:12:00.00, 11:13:00.00, 11:14:00.00, 11:15:00.00'
-	time = '15:30:30, 15:31:30, 15:32:40, 15:33:38,15:33:42, 15:35:00,15:36:10,15:36:20,15:37:17,15:37:22,15:38:35,15:38:45,15:41:20'
+	# time = '15:30:30, 15:31:30, 15:32:40, 15:33:38,15:33:42, 15:35:00,15:36:10,15:36:20,15:37:17,15:37:22,15:38:35,15:38:45,15:41:20'
+	time=''
 	f1 = 'log/sillage1_ahrs1_log_2023-02-08_14_29_14.log'
 
 	f2 = 'log/sillage1_ahrs2_log_2023-02-08_14_29_14.log'
@@ -861,7 +860,7 @@ def real_test1():
 	# l_point = 10000
 	# f_point = 0
 	# l_point = -1
-	t_begin = '15:30:20'
+	t_begin = '15:16:20'
 	t_last='17:20:00'
 	# For the last Guerledan measures
 	seuil = 1.5
@@ -875,23 +874,77 @@ def real_test1():
 	plot_buoys2(seuil, delta_p, file1=[f1, f2], file2=[f3, f4], gps_files=[gps, gps2], time=time, t_begin=t_begin, t_last=t_last)
 
 
-	t0, t1 = cvt_time(t_begin, t_last)
-	print('\nDetection buoy 1')
-	res1, res2, interval1, interval2 = detection2(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
-	plot_detections([res1, res2], [interval1, interval2], t0, t1)
-	gps_box1, gps_box2 = get_gps_intervals(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
-	# print(gps_box1)
-	write_in_csv('test_complet_ahrs1', interval1, gps_box1)
-	write_in_csv('test_complet_ahrs2', interval2, gps_box2)
+	# t0, t1 = cvt_time(t_begin, t_last)
+	# print('\nDetection buoy 1')
+	# res1, res2, interval1, interval2 = detection2(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# plot_detections([res1, res2], [interval1, interval2], t0, t1)
+	# gps_box1, gps_box2 = get_gps_intervals(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# # print(gps_box1)
+	# write_in_csv('test_complet_ahrs1', interval1, gps_box1)
+	# write_in_csv('test_complet_ahrs2', interval2, gps_box2)
 
 
-	print('\nDetection buoy 2')
-	res3, res4, interval3, interval4 = detection2(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
-	plot_detections([res3, res4], [interval3, interval4], t0, t1)
-	gps_box3, gps_box4 = get_gps_intervals(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
-	# print(gps_box3)
-	write_in_csv('test_complet_ahrs3', interval3, gps_box3)
-	write_in_csv('test_complet_ahrs4', interval4, gps_box4)
+	# print('\nDetection buoy 2')
+	# res3, res4, interval3, interval4 = detection2(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# plot_detections([res3, res4], [interval3, interval4], t0, t1)
+	# gps_box3, gps_box4 = get_gps_intervals(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# # print(gps_box3)
+	# write_in_csv('test_complet_ahrs3', interval3, gps_box3)
+	# write_in_csv('test_complet_ahrs4', interval4, gps_box4)
+
+
+def guerledan2_last():
+	# time = '11:56:00.00, 11:57:00.00, 11:58:00.00, 12:00:00.00, 12:01:00.00, 12:02:00.00, 12:05:00.00, 12:06:00.00'
+	time=''
+
+	f1 = 'log/sillage1_ahrs1_log_2023-02-09_10_10_20.log'
+	f2 = 'log/sillage1_ahrs2_log_2023-02-09_10_10_20.log'
+	gps = 'log/sillage1_gps1_log_2023-02-09_10_10_20.log'
+
+	f3 = 'log/sillage2_ahrs1_log_2023-02-09_10_10_29.log'
+	f4 = 'log/sillage2_ahrs2_log_2023-02-09_10_10_29.log'
+	gps2 = 'log/sillage2_gps1_log_2023-02-09_10_10_29.log'
+
+
+	# Noise period
+	t_begin = '13:20:00'
+	t_last='14:20:00'
+
+	# Boat detections
+	t_begin = '11:55:00'
+	t_last='12:10:00'
+
+	# Full mission :
+	t_begin = '11:55:00'
+	t_last='16:55:00'
+
+	# Complete tracks
+	# t_begin = 0
+	# t_last= -1
+
+	# For the last Guerledan measures
+	seuil = 1.5
+	delta_p = 180.
+	plot_buoys2(seuil, delta_p, file1=[f1, f2], file2=[f3, f4], gps_files=[gps, gps2], time=time, t_begin=t_begin, t_last=t_last)
+
+
+	# t0, t1 = cvt_time(t_begin, t_last)
+	# print('\nDetection buoy 1')
+	# res1, res2, interval1, interval2 = detection2(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# plot_detections([res1, res2], [interval1, interval2], t0, t1)
+	# gps_box1, gps_box2 = get_gps_intervals(f1, f2, gps, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# # print(gps_box1)
+	# write_in_csv('test_complet_ahrs1', interval1, gps_box1)
+	# write_in_csv('test_complet_ahrs2', interval2, gps_box2)
+
+
+	# print('\nDetection buoy 2')
+	# res3, res4, interval3, interval4 = detection2(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# plot_detections([res3, res4], [interval3, interval4], t0, t1)
+	# gps_box3, gps_box4 = get_gps_intervals(f3, f4, gps2, seuil, delta_p,t_begin=t_begin, t_last=t_last, output='Frequency')
+	# # print(gps_box3)
+	# write_in_csv('test_complet_ahrs3', interval3, gps_box3)
+	# write_in_csv('test_complet_ahrs4', interval4, gps_box4)
 
 
 
@@ -922,8 +975,10 @@ if __name__ == '__main__':
 
 	# rade1()
 
-	# guerledan2()
+	# guerledan2_fail()
 
-	real_test1()
+	# real_test1()
+
+	guerledan2_last()
 
 	plt.show()

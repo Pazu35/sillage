@@ -6,11 +6,7 @@ import time
 import filt
 import datetime
 import logging 
-import threading
-
-
-
-
+import threading  #/!\ Not used anymore because of unknown logging speed issues
 
 
 

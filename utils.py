@@ -310,11 +310,15 @@ def log_file(file_name, alignement = 0.):
 
     count = 0
     for line in f:
+        # Whole raw datas :
+        # rtcDate,rtcTime,aX,aY,aZ,gX,gY,gZ,mX,mY,mZ,imu_degC,output_Hz
+
         l = line.strip()
         l = l.split(';')
         date = l[0].split(' ')
         # print('l : ', l)
         l = l[2].split(',')
+        # Skip the first 30 useless lines 
         if count < 30:
             count +=1
         else :
@@ -1351,7 +1355,9 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         # Plt stuff for plotting 
         f1 = plt.figure(figsize=(20,10))
         f1.subplots_adjust(hspace=0.5)
+        f1.canvas.set_window_title('Buoy 1')
         f2 = plt.figure()
+        f2.canvas.set_window_title('GPS tracks')
 
         ax1 = f1.add_subplot(311)
         ax2 = f1.add_subplot(323)
@@ -1396,7 +1402,7 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         for j in range(len(filtered_detect2)):
             # print(filtered_detect2[j][0])
             # print(filtered_z2[filtered_detect2[j][0]])
-            ax7.scatter(t[filtered_detect2[j][0]], graph_offset+2, color='purple')
+            ax7.scatter(t2[filtered_detect2[j][0]], graph_offset+2, color='purple')
 
 
 
@@ -1522,6 +1528,7 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         # Plt stuff for plotting 
         f3 = plt.figure(figsize=(20,10))
         f3.subplots_adjust(hspace=0.5)
+        f3.canvas.set_window_title('Buoy 2')
 
         ax1 = f3.add_subplot(311)
         ax2 = f3.add_subplot(323)
@@ -1563,7 +1570,7 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         for j in range(len(filtered_detect2)):
             # print(filtered_detect2[j][0])
             # print(filtered_z2[filtered_detect2[j][0]])
-            ax7.scatter(t[filtered_detect2[j][0]], graph_offset+2, color='purple')
+            ax7.scatter(t2[filtered_detect2[j][0]], graph_offset+2, color='purple')
 
 
 
