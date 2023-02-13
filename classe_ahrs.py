@@ -3,7 +3,7 @@ import serial
 # from ahrs import Quaternion
 import numpy as np
 import time
-import filt
+# import filt
 import datetime
 import logging 
 import threading  #/!\ Not used anymore because of unknown logging speed issues
@@ -44,7 +44,7 @@ class AHRS:
 		self.__frequency = 50.
 
 
-		self.__acc_filt1 = filt.MovingAverageFilter(40*self.__frequency)
+		# self.__acc_filt1 = filt.MovingAverageFilter(40*self.__frequency)
 		self.__last_z_acc = 0
 		self.__nb_mesure = 0
 

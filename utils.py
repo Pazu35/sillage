@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as sg
-
+import datetime
 # For gpx files
 import gpxpy
 import gpxpy.gpx
@@ -12,7 +12,8 @@ def convert(d):
     d = abs(d)
     D = int(d)
     M = (d - D) * 60
-    return float("{0:2d}{1:7.4f}".format(D, M))
+    # print("Convert : ", d, D, M)
+    return float("{0:2d}{1:7.4f}".format(D, M).replace(" ", "0"))
 
 def get_latlon_as_in_nmea_from_gpx(filename):
     gpx_file = open(filename, 'r')
@@ -20,12 +21,21 @@ def get_latlon_as_in_nmea_from_gpx(filename):
     gpx = gpxpy.parse(gpx_file)
     lat = []
     lon = []
+    times = []
     for track in gpx.tracks:
         for segment in track.segments:
             for point in segment.points:
+                # print(point.latitude)
+                # print(point.longitude)
                 lat.append(convert(point.latitude))
                 lon.append(convert(point.longitude))
-    return np.array(lat), np.array(lon)
+                date = point.time.strftime("%H:%M:%S.%s")
+                # print(date)
+                t_i, _ = cvt_time(date, date)
+                # print(t_i)
+                times.append(t_i + 3600)
+                # print(type(point.time))
+    return np.array(lat), np.array(lon), np.array(times)
 
 def get_time_from_point(index):
     hours = index//3600
@@ -1335,9 +1345,14 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
             # print('D : ', (detect_times2))
         
         # Getting gps track of gpx file
-        lat_x, lon_x = [], []
+        lat_x, lon_x, t_x = [], [], []
         if gpx != '':
-            lat_x, lon_x = get_latlon_as_in_nmea_from_gpx(gpx)
+            lat_x, lon_x, t_x = get_latlon_as_in_nmea_from_gpx(gpx)
+
+        f_point = find_index(t_x, t_0 - alignement)
+        l_point = find_index(t_x, t_1 - alignement)
+        lat_x = lat_x[f_point:l_point]
+        lon_x = lon_x[f_point:l_point]
 
         # Getting the timestamps
         time_off += alignement
@@ -1376,7 +1391,7 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         ax3.set_title('GPS track')
 
         ax3.plot(lat, lon, color='blue')
-        # ax3.plot(lat_x, lon_x, color='green')
+        ax3.plot(lat_x, lon_x, color='green')
 
         ax1.plot(times, altitudes)
 
@@ -1507,10 +1522,6 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
             detect_times2 = res
             # print('D : ', (detect_times2))
         
-        # Getting gps track of gpx file
-        lat_x, lon_x = [], []
-        if gpx != '':
-            lat_x, lon_x = get_latlon_as_in_nmea_from_gpx(gpx)
 
         # Getting the timestamps
         time_off += alignement

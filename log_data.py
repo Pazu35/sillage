@@ -68,6 +68,7 @@ capt2 = classe_ahrs.AHRS('/dev/' + portAHRS2)
 
 print('=============')
 print("Start logging")
+print("Please make sure it was launched in screen, then press Ctrl+a, d")
 print('=============')
 # cnt = 0
 # start = time.time()
