@@ -1362,9 +1362,9 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         filtered_detect1 = detect_points(filtered_z1, seuil, delta_p)
         filtered_detect2 = detect_points(filtered_z2, seuil, delta_p)
 
-        # Coefs for graph plotting the different sizes arrays
-        a = len(t)/len(lat)
-        b = len(lat_x)/len(lat)
+        # # Coefs for graph plotting the different sizes arrays
+        # a = len(t)/len(lat)
+        # b = len(lat_x)/len(lat)
 
 
         # Plt stuff for plotting 
@@ -1391,7 +1391,8 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         ax3.set_title('GPS track')
 
         ax3.plot(lat, lon, color='blue')
-        ax3.plot(lat_x, lon_x, color='green')
+        if len(lat_x) != 0 :
+            ax3.plot(lat_x, lon_x, color='green')
 
         ax1.plot(times, altitudes)
 
@@ -1592,8 +1593,11 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         ax6.set_title('Accelerometers, x, y, z AHRS2')
         ax6.legend(['X', 'Y', 'Z'])
         ax6.set_ylim([-1, graph_offset + 7])
-        ax3.set_title('GPS track')
-        ax3.legend(['Buoy 1', 'Buoy 2'])
+
+        if len(lat_x) != 0 :
+            ax3.legend(['Buoy 1', 'Boat', 'Buoy 2'])
+        else:
+            ax3.legend(['Buoy 1', 'Buoy 2'])
 
         ax4.set_title('Z accel centered AHRS1')
         ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
