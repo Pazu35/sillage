@@ -858,12 +858,12 @@ def real_test1():
 
 	gpx = 'log/2023-02-08 15_30_37.gpx'
 	t_begin = '15:30:10'
-	t_last='15:30:57'
+	t_last='15:31:01'
 	# t_last='17:20:00' # EOF
-	
+
 	# For the last Guerledan measures
 	seuil = 1.5
-	delta_p = 180.
+	delta_p = 51.
 	# plot_files(f1, gps, seuil, delta_p, time=time)
 	# plot_files(f2, gps, seuil, delta_p, time=time)
 
