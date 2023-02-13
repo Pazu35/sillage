@@ -1,5 +1,6 @@
 # sillage
-Projet guerledan 2022/2023 sous la tutelle de Quentin Brateau
+Projet guerledan 2022/2023 sous la tutelle de Quentin Brateau.
+
 Jonas Soueidan
 Thomas Tacheron 
 Ermance Decaudaveine
