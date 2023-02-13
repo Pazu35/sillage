@@ -77,12 +77,11 @@ gpx = 'log/2023-02-08 15_30_37.gpx'  # Boat GPX file
 
 # For a Single detection (the first one defined in time):
 t_begin = '15:30:10' #First slicing timestamp
-t_last='15:30:57' #Second slicing timestamp
+t_last='15:31:01' #Second slicing timestamp
 
 # For the last Guerledan measures, detection parameters :
 seuil = 1.5
-delta_p = 180.
-
+delta_p = 51.
 
 # Plotting the data from the files, sliced and the detection points 
 plot_buoys2(seuil, delta_p, file1=[f1, f2], file2=[f3, f4], gps_files=[gps, gps2], time=time, gpx=gpx, t_begin=t_begin, t_last=t_last)
@@ -117,4 +116,4 @@ On observe également les images suivantes :
 ### Post-Processing Intervalles
 Le code original viens [ce dépot Git](https://github.com/Teusner/WakeBoat).
 Après adaptation avec nos intervalles de detections mesurés, on obtient ceci :
-![Interval Detection](output.gif)
+![Interval Detection](imgs/out.gif)
