@@ -108,7 +108,10 @@ write_in_csv('first_detect_ahrs4', interval4, gps_box4)
 
 ```
 La sortie de ce code donne donc des fichiers CSV à traiter avec les codes intervalles.
-
+On observe également les images suivantes :
+![Gps track](imgs/gps_track.png)
+![Buoy 1](imgs/buoy1.png)
+![Buoy 2](imgs/buoy2.png)
 
 ### Post-Processing Intervalles
 Le code original viens [ce dépot Git](https://github.com/Teusner/WakeBoat).
