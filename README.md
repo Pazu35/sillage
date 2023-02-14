@@ -2,9 +2,13 @@
 Projet guerledan 2022/2023 sous la tutelle de Quentin Brateau.
 
 Jonas Soueidan
+
 Thomas Tacheron 
+
 Ermance Decaudaveine
+
 Hortense Leynier
+
 Oscar Gauvrit
 
 ## Objectifs 
@@ -115,5 +119,5 @@ On observe également les images suivantes :
 
 ### Post-Processing Intervalles
 Le code original viens [ce dépot Git](https://github.com/Teusner/WakeBoat).
-Après adaptation avec nos intervalles de detections mesurés, on obtient ceci :
+Après adaptation avec nos intervalles de detections mesurés dans [ce dépot Git](https://github.com/thomastacheron/Sillage), on obtient ceci :
 ![Interval Detection](imgs/out.gif)
