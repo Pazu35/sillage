@@ -2,6 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as sg
 import datetime
+from datetime import datetime, timedelta, date, time
+from scipy import signal
+import matplotlib.dates as mdates
+import matplotlib.cbook as cbook
+import scipy.fft as scf
+from sklearn.mixture import GaussianMixture
+from scipy.stats import norm
+from sklearn.metrics import mean_squared_error
+
 # For gpx files
 import gpxpy
 import gpxpy.gpx
@@ -180,6 +189,125 @@ def RK(p, vr, R , ar, wr, dt):
     R = Raux @ expw(dt * wr)
     return (p, vr, R)
 
+
+def acc_filter_fft(accZ, Hz):
+    
+    ###ajouter plage temporelle sur l acc pour visualisr les vagues ou non
+    freq = Hz
+    N = len(accZ)
+    
+    accZ = accZ - accZ.mean()
+    
+    accZ_fft = scf.fft(accZ, norm = 'forward')
+    accZ_fft = np.abs(accZ_fft) **2
+
+    
+    accZ_fftfreq = scf.fftfreq(N,1/freq)
+    
+    i = accZ_fftfreq>0
+    accZ_fftfreq,accZ_fft= accZ_fftfreq[i],accZ_fft[i]
+    
+    plt.figure()
+    plt.plot(accZ_fftfreq,accZ_fft)
+    plt.ylabel('Amplitude')
+    plt.xlabel('Frequency (Hz)')
+    
+    peaks, _ = signal.find_peaks(accZ_fft,distance = 100, height = 0.00001 )
+    peaks = peaks[np.argpartition(accZ_fft[peaks], -2)[-2:]]
+    
+
+    half_height = signal.peak_widths(accZ_fft, peaks, rel_height=0.5)
+    
+    
+    plt.plot(accZ_fftfreq[peaks],accZ_fft[peaks],'x')
+    plt.hlines(y = half_height[1], xmin =  accZ_fftfreq[half_height[2].astype(np.int32)], xmax = accZ_fftfreq[half_height[3].astype(np.int32)] ,color="C2")
+    
+    
+    
+    height =  signal.peak_widths(accZ_fft, peaks, rel_height= 0.995)
+    plt.hlines(y = height[1], xmin =  accZ_fftfreq[height[2].astype(np.int32)], xmax = accZ_fftfreq[height[3].astype(np.int32)] ,color="C2")
+    
+    plt.xlabel('Frequence (Hz)')
+    plt.ylabel('Amplitude')
+    # plt.figure()
+    # plt.plot(accZ_fft)
+    # plt.plot(peaks,accZ_fft[peaks],'x')
+    # plt.hlines(*half_height[1:] ,color="C3")
+    
+    
+    #plt.xlim(right = 0.001)
+    
+    return accZ_fftfreq,accZ_fft,peaks
+
+def welch(acc,time_sec,T,Hz,t,timestamp=[]):
+    wave_lenght = 2*T*Hz
+    
+    plt.figure()
+    density = []
+    box_size =  (int(np.sqrt(10*T))+1)**2
+    nperseg = (int(np.sqrt(10*t))+1)**2
+    
+    box_size = 121
+    nperseg = 36
+    for i in range(box_size,acc.size):
+        f,pxx = signal.welch(acc[i-box_size:i],fs = Hz,nperseg = nperseg, window = 'boxcar')
+        density.append(pxx)
+
+    density = np.array(density)
+    time_sec = time_sec[box_size:]
+    
+    power = np.sum(density, axis = 1)
+    
+    peaks, _ = signal.find_peaks(power,distance = wave_lenght, height = 0.1*np.max(power))
+    
+    # metrics = precision_recall(time_sec[peaks],timestamp ,T)
+    
+    plt.imshow(density, aspect='auto', extent = (f[0],f[-1],time_sec[0],time_sec[-2]))
+    plt.colorbar()
+    plt.xlabel('frequence (Hz)')
+    plt.ylabel('temps (s)')
+    
+    plt.figure()
+    plt.plot(time_sec,power)
+
+
+    # plt.plot(time_sec[peaks],power[peaks],'x',label = f'RMSE={round(metrics[-1],2)}, F1={round(metrics[-2],2)}')
+    plt.plot(time_sec[peaks],power[peaks],'x')
+    plt.xlabel('temps (s)')
+    plt.ylabel('Energie (J)')
+    # plt.legend()
+    
+    [plt.vlines(x,0,np.max(power), color = 'g') for x in timestamp]
+
+            
+    return density,power, time_sec[peaks]
+    
+ 
+def precision_recall(detection_list,truth_list,T):
+    TP_timestamp = []
+    TP_detection = []
+    FP = []
+    FN = []
+    for truth in truth_list:
+        A = ( detection_list >= truth - T) & (detection_list <= truth + T)
+        if np.any(A):
+            TP_timestamp.append(truth)
+        else:
+            FN.append(truth)
+
+    for detection in detection_list:
+        B = (truth_list >= detection - T) & (truth_list <= detection + T)
+        if np.any(B):
+            TP_detection.append(detection)
+        else:
+            FP.append(detection)
+            
+    P = len(TP_detection)/(len(TP_detection)+len(FP))
+    R = len(TP_detection)/(len(TP_detection)+len(FN))
+    F1 = 2*P*R/(P+R)
+    
+    RMSE = mean_squared_error(TP_timestamp,TP_detection)
+    return TP_timestamp,TP_detection,FP,FN,P,R,F1,RMSE
 
 # ====================
 # Read log file functions
@@ -1817,6 +1945,102 @@ def detection2(f1, f2, gps, seuil, delta_p, t_begin =0, t_last=-1, output='Stand
         return [], [], [], []
 
 
+
+def detection_welch(f1, f2, gps,time='',  t_begin=0, t_last=-1):
+    # Read gps log
+    times, gps_times, lat, lon , altitudes = log_gps(gps)
+    alignement = np.mean(gps_times - times)
+    print('GPS time offset : ', alignement)
+
+    lt_time = real_time_read(time)
+    # Read ahrs logs
+    t, acc1, gyr, mag, temp, rate = log_file(f1, alignement)
+    t2, acc2, gyr, mag, temp, rate = log_file(f2, alignement)
+
+    Hz = np.mean(np.mean(rate))
+    # Slicing according to the f_point and l_point, for all arrays
+    if t_begin != 0 and t_last != -1:
+        t_0, t_1 = cvt_time(t_begin, t_last)
+        # print('Times in if : ', t_0, ', ', t_1)
+
+    else:
+        t_0 = t[0]
+        t_1 = t[-1]
+
+    f_point = find_index(t, t_0)
+    l_point = find_index(t, t_1)
+    # print('Indexes : ', f_point, ',', l_point)
+    print('Times : ', t_0, ', ', t_1)
+    t = t[f_point:l_point]
+    acc1 = acc1[f_point:l_point]
+
+    f_point = find_index(t2, t_0)
+    l_point = find_index(t2, t_1)
+    # print('Slicing t2 : ', f_point, ', ', l_point)
+    t_02 = t2[f_point]
+    t_12 = t2[l_point]
+    delta_t_ahrs = t_0 - t_02
+    print('Delta t AHRS : ', delta_t_ahrs)
+    t2 = t2[f_point:l_point]
+    acc2 = acc2[f_point:l_point]
+
+    # print('Times : ', t_02, ', ', t_12)
+
+    f_point = find_index(times, t_0 - alignement)
+    l_point = find_index(times, t_1 - alignement)
+
+    lat = lat[f_point: l_point]
+    lon = lon[f_point: l_point]
+    altitudes = altitudes[f_point: l_point]
+    times = times[f_point: l_point]
+
+
+    # Getting Z-axis accelerations and normalisation
+    acc_z1 = (acc1[:,2])
+    acc_z1 = np.abs(acc_z1 - np.mean(acc_z1))/np.std(acc_z1)
+
+    acc_z2 = (acc2[:,2])
+    acc_z2 = np.abs(acc_z2 - np.mean(acc_z2))/np.std(acc_z2)
+
+
+    fft = acc_filter_fft(acc_z1, Hz)
+
+    f_wave,f_sill = fft[0][fft[-1]]
+    if  abs(f_wave - f_sill) >= 0.1:       
+        f1 = [f_sill-0.1, f_sill + 0.1]
+        f2 = [f_wave-0.1, f_wave + 0.1]
+        
+    else: 
+        f1 = [f_sill - abs(f_sill-f_wave), f_sill + abs(f_sill-f_wave)]
+        f2 = [f_wave - abs(f_sill-f_wave), f_wave + abs(f_sill-f_wave)]
+    
+    
+    t_ = 1/f_sill
+    T = 13*t_
+
+    density,power, detection_time_welch = welch(acc_z1, t, T, Hz, t_, timestamp=lt_time)
+
+
+
+    # fft = acc_filter_fft(acc_z2, Hz)
+
+    # f_wave,f_sill = fft[0][fft[-1]]
+    # if  abs(f_wave - f_sill) >= 0.1:       
+    #     f1 = [f_sill-0.1, f_sill + 0.1]
+    #     f2 = [f_wave-0.1, f_wave + 0.1]
+        
+    # else: 
+    #     f1 = [f_sill - abs(f_sill-f_wave), f_sill + abs(f_sill-f_wave)]
+    #     f2 = [f_wave - abs(f_sill-f_wave), f_wave + abs(f_sill-f_wave)]
+    
+    
+    # t_ = 1/f_sill
+    # T = 13*t_
+
+    # density,power, detection_time_welch = welch(acc_z2, t2, T, Hz, t_)
+
+
+    plt.show()
 
 def get_gps_intervals(f1, f2, gps, seuil, delta_p, t_begin =0, t_last=-1, output='Standard'):
 

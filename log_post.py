@@ -955,7 +955,9 @@ def guerledan2_last():
 	# write_in_csv('test_complet_ahrs4', interval4, gps_box4)
 
 def rade2():
-	time = ''
+	# time = '15:24:00,15:25:00,15:26:00, 15:48:00, 15:52:00, 15:55:00, 17:18:00'
+	# time = '15:24:00,15:25:00,15:26:00, 15:48:00, 15:52:00, 15:55:00'
+	time = '15:24:00,15:25:00,15:26:00'
 	f1 = 'log/log_rade2/sillage1_ahrs1_log_2023-02-17_12_58_03.log'
 	f2 = 'log/log_rade2/sillage1_ahrs2_log_2023-02-17_12_58_03.log'
 	gps1 = 'log/log_rade2/sillage1_gps1_log_2023-02-17_12_58_03.log'
@@ -966,17 +968,17 @@ def rade2():
 	gps2 = 'log/log_rade2/sillage2_gps1_log_2023-02-17_12_59_37.log'
 
 
-	t_begin = '15:20:00'
-	t_last='18:20:00'
-	t_begin = 0
-	t_last=-1
+	t_begin = '15:23:00'
+	t_last='15:27:00'
+	# t_begin = 0
+	# t_last=-1
 
 	# For the last Guerledan measures
 	seuil = 1.5
 	delta_p = 51.
 
-	plot_buoys2(seuil, delta_p, file1=[f1, f2], file2=[f3, f4], gps_files=[gps1, gps2], time=time, t_begin=t_begin, t_last=t_last)
-
+	# plot_buoys2(seuil, delta_p, file1=[f1, f2], file2=[f3, f4], gps_files=[gps1, gps2], time=time, t_begin=t_begin, t_last=t_last)
+	detection_welch(f3, f4, gps2, time=time, t_begin=t_begin, t_last=t_last)
 
 if __name__ == '__main__':
 
