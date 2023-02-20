@@ -11,7 +11,7 @@ import threading  #/!\ Not used anymore because of unknown logging speed issues
 
 
 # ===============================
-
+# Reading config file, extracting info
 f = open("config.txt", "r")
 lines = f.readlines()
 

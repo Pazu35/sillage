@@ -6,7 +6,7 @@ import datetime
 import gpxpy
 import gpxpy.gpx
 
-
+#  https://matplotlib.org/stable/tutorials/introductory/lifecycle.html
 # Parsing an existing gpx file:
 def convert(d):
     d = abs(d)
@@ -73,7 +73,15 @@ def write_in_csv(file_name, detect_times, gps_pos):
         f.write(string)
     f.close()
 
+def gps_to_csv(file_name, lat_x, lon_x, t_x):
+    f = open(file_name, "w")
 
+    # print("Length of both lists : ", len(detect_times), 'and ', len(gps_pos))
+    L = len(lat_x)
+    for i in range(L):
+        string = str(t_x[i]) + "," + str(t_x[i])+ "," + str(lat_x[i])+ "," + str(lat_x[i]) + "," + str(lon_x[i]) + "," + str(lon_x[i]) + "\n"
+        f.write(string)
+    f.close()
 
 # ====================
 
@@ -527,9 +535,11 @@ def plot_files(f1, gps, seuil, delta_p, df1 = '', time = '', gpx = '', f_point=0
 
 
             ax1.set_title('GPS Altitude')
+            ax1.set_xlabel("Time (s)")
             ax2.set_title('Accelerometers, x, y, z')
             ax2.legend(['X', 'Y', 'Z'])
             ax2.set_ylim([-1, graph_offset + 7])
+            ax2.set_xlabel("Time (s)")
             ax3.set_title('GPS track')
             if len(lat_x) != 0 :
                 ax3.legend(['Buoy', 'Boat at time t'])
@@ -539,6 +549,7 @@ def plot_files(f1, gps, seuil, delta_p, df1 = '', time = '', gpx = '', f_point=0
             ax4.set_title('Z accel centered')
             ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered'])
             ax4.set_ylim([-1, graph_offset + 7])
+            ax4.set_xlabel("Time (s)")
 
 
 
@@ -564,9 +575,11 @@ def plot_files(f1, gps, seuil, delta_p, df1 = '', time = '', gpx = '', f_point=0
 
 
         ax1.set_title('GPS Altitude')
+        ax1.set_xlabel("Time (s)")
         ax2.set_title('Accelerometers, x, y, z')
         ax2.legend(['X', 'Y', 'Z'])
         ax2.set_ylim([-1, graph_offset + 7])
+        ax2.set_xlabel("Time (s)")
         ax3.set_title('GPS track')
         if len(lat_x) != 0 :
             ax3.legend(['Buoy', 'Boat at time t'])
@@ -576,6 +589,7 @@ def plot_files(f1, gps, seuil, delta_p, df1 = '', time = '', gpx = '', f_point=0
         ax4.set_title('Z accel centered')
         ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered'])
         ax4.set_ylim([-1, graph_offset + 7])
+        ax4.set_xlabel("Time (s)")
 
 
 def plot_files2(f1, f2, gps, seuil, delta_p, df1='', df2='', time = '', gpx = '', f_point=0, l_point=-1, animate=False):
@@ -767,12 +781,15 @@ def plot_files2(f1, f2, gps, seuil, delta_p, df1='', df2='', time = '', gpx = ''
 
 
             ax1.set_title('GPS Altitude')
+            ax1.set_xlabel("Time (s)")
             ax2.set_title('Accelerometers, x, y, z AHRS1')
             ax2.legend(['X', 'Y', 'Z'])
             ax2.set_ylim([-1, graph_offset + 7])
+            ax2.set_xlabel("Time (s)")
             ax6.set_title('Accelerometers, x, y, z AHRS2')
             ax6.legend(['X', 'Y', 'Z'])
             ax6.set_ylim([-1, graph_offset + 7])
+            ax6.set_xlabel("Time (s)")
             ax3.set_title('GPS track')
             if len(lat_x) != 0 :
                 ax3.legend(['Buoy', 'Boat at time t'])
@@ -782,9 +799,11 @@ def plot_files2(f1, f2, gps, seuil, delta_p, df1='', df2='', time = '', gpx = ''
             ax4.set_title('Z accel centered AHRS1')
             ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
             ax4.set_ylim([-1, graph_offset + 7])
+            ax4.set_xlabel("Time (s)")
             ax7.set_title('Z accel centered AHRS2')
             ax7.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
             ax7.set_ylim([-1, graph_offset + 7])
+            ax7.set_xlabel("Time (s)")
 
 
 
@@ -823,12 +842,15 @@ def plot_files2(f1, f2, gps, seuil, delta_p, df1='', df2='', time = '', gpx = ''
 
 
         ax1.set_title('GPS Altitude')
+        ax1.set_xlabel("Time (s)")
         ax2.set_title('Accelerometers, x, y, z AHRS1')
         ax2.legend(['X', 'Y', 'Z'])
         ax2.set_ylim([-1, graph_offset + 7])
+        ax2.set_xlabel("Time (s)")
         ax6.set_title('Accelerometers, x, y, z AHRS2')
         ax6.legend(['X', 'Y', 'Z'])
         ax6.set_ylim([-1, graph_offset + 7])
+        ax6.set_xlabel("Time (s)")
         ax3.set_title('GPS track')
         if len(lat_x) != 0 :
             ax3.legend(['Buoy', 'Boat at time t'])
@@ -838,9 +860,11 @@ def plot_files2(f1, f2, gps, seuil, delta_p, df1='', df2='', time = '', gpx = ''
         ax4.set_title('Z accel centered AHRS1')
         ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax4.set_ylim([-1, graph_offset + 7])
+        ax4.set_xlabel("Time (s)")
         ax7.set_title('Z accel centered AHRS2')
         ax7.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax7.set_ylim([-1, graph_offset + 7])
+        ax7.set_xlabel("Time (s)")
 
 
 def plot_buoys( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', df2='', time = '', gpx = '', f_point=0, l_point=-1):
@@ -1009,12 +1033,15 @@ def plot_buoys( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', df
 
 
         ax1.set_title('GPS Altitude buoy 1')
+        ax1.set_xlabel("Time (s)")
         ax2.set_title('Accelerometers, x, y, z AHRS1')
         ax2.legend(['X', 'Y', 'Z'])
         ax2.set_ylim([-1, graph_offset + 7])
+        ax2.set_xlabel("Time (s)")
         ax6.set_title('Accelerometers, x, y, z AHRS2')
         ax6.legend(['X', 'Y', 'Z'])
         ax6.set_ylim([-1, graph_offset + 7])
+        ax6.set_xlabel("Time (s)")
         ax3.set_title('GPS track')
         if len(lat_x) != 0 :
             ax3.legend(['Buoy', 'Boat at time t'])
@@ -1024,9 +1051,11 @@ def plot_buoys( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', df
         ax4.set_title('Z accel centered AHRS1')
         ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax4.set_ylim([-1, graph_offset + 7])
+        ax4.set_xlabel("Time (s)")
         ax7.set_title('Z accel centered AHRS2')
         ax7.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax7.set_ylim([-1, graph_offset + 7])
+        ax7.set_xlabel("Time (s)")
 
 
         print("\n====================")
@@ -1193,21 +1222,26 @@ def plot_buoys( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', df
 
 
         ax1.set_title('GPS Altitude buoy 2')
+        ax1.set_xlabel("Time (s)")
         ax2.set_title('Accelerometers, x, y, z AHRS1')
         ax2.legend(['X', 'Y', 'Z'])
         ax2.set_ylim([-1, graph_offset + 7])
+        ax2.set_xlabel("Time (s)")
         ax6.set_title('Accelerometers, x, y, z AHRS2')
         ax6.legend(['X', 'Y', 'Z'])
         ax6.set_ylim([-1, graph_offset + 7])
+        ax6.set_xlabel("Time (s)")
         ax3.set_title('GPS track')
         ax3.legend(['Buoy 1', 'Buoy 2'])
 
         ax4.set_title('Z accel centered AHRS1')
         ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax4.set_ylim([-1, graph_offset + 7])
+        ax4.set_xlabel("Time (s)")
         ax7.set_title('Z accel centered AHRS2')
         ax7.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax7.set_ylim([-1, graph_offset + 7])
+        ax7.set_xlabel("Time (s)")
 
     else:
         print("Wrong data type ! Please put in lists !")
@@ -1233,6 +1267,7 @@ def plot_detections(t=[], intervals=[], t0 = '', t1=''):
             ax.plot([j[0], j[1]], [0,0], color='blue')
         ax.set_title("Detection times and intervals of " + str(i+1))
         ax.set_xlim([t0, t1])
+        ax.set_xlabel("Time (s)")
 
 
 
@@ -1349,10 +1384,15 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         if gpx != '':
             lat_x, lon_x, t_x = get_latlon_as_in_nmea_from_gpx(gpx)
 
-        f_point = find_index(t_x, t_0 - alignement)
-        l_point = find_index(t_x, t_1 - alignement)
-        lat_x = lat_x[f_point:l_point]
-        lon_x = lon_x[f_point:l_point]
+            f_point = find_index(t_x, t_0 - alignement)
+            l_point = find_index(t_x, t_1 - alignement)
+            lat_x = lat_x[f_point:l_point]
+            lon_x = lon_x[f_point:l_point]
+            print("Temps gpx : ", t_x[0], t_x[-1])
+            t_x = t_x[f_point:l_point]
+            print("Temps gpx : ", t_x[0], t_x[-1])
+            gps_to_csv("cropped_gps_track", lat_x, lon_x, t_x)
+
 
         # Getting the timestamps
         time_off += alignement
@@ -1423,12 +1463,15 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
 
 
         ax1.set_title('GPS Altitude buoy 1')
+        ax1.set_xlabel("Time (s)")
         ax2.set_title('Accelerometers, x, y, z AHRS1')
         ax2.legend(['X', 'Y', 'Z'])
         ax2.set_ylim([-1, graph_offset + 7])
+        ax2.set_xlabel("Time (s)")
         ax6.set_title('Accelerometers, x, y, z AHRS2')
         ax6.legend(['X', 'Y', 'Z'])
         ax6.set_ylim([-1, graph_offset + 7])
+        ax6.set_xlabel("Time (s)")
         ax3.set_title('GPS track')
         if len(lat_x) != 0 :
             ax3.legend(['Buoy', 'Boat at time t'])
@@ -1438,9 +1481,11 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
         ax4.set_title('Z accel centered AHRS1')
         ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax4.set_ylim([-1, graph_offset + 7])
+        ax4.set_xlabel("Time (s)")
         ax7.set_title('Z accel centered AHRS2')
         ax7.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax7.set_ylim([-1, graph_offset + 7])
+        ax7.set_xlabel("Time (s)")
 
 
         print("\n====================")
@@ -1586,25 +1631,30 @@ def plot_buoys2( seuil, delta_p, file1 = [], file2=[], gps_files = [], df1='', d
 
 
 
-        ax1.set_title('GPS Altitude buoy 2')
+        ax1.set_title('GPS Altitude buoy 1')
+        ax1.set_xlabel("Time (s)")
         ax2.set_title('Accelerometers, x, y, z AHRS1')
         ax2.legend(['X', 'Y', 'Z'])
         ax2.set_ylim([-1, graph_offset + 7])
+        ax2.set_xlabel("Time (s)")
         ax6.set_title('Accelerometers, x, y, z AHRS2')
         ax6.legend(['X', 'Y', 'Z'])
         ax6.set_ylim([-1, graph_offset + 7])
-
+        ax6.set_xlabel("Time (s)")
+        ax3.set_title('GPS track')
         if len(lat_x) != 0 :
-            ax3.legend(['Buoy 1', 'Boat', 'Buoy 2'])
+            ax3.legend(['Buoy', 'Boat at time t'])
         else:
-            ax3.legend(['Buoy 1', 'Buoy 2'])
+            ax3.legend(['Buoy', 'Pos at time t'])
 
         ax4.set_title('Z accel centered AHRS1')
         ax4.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax4.set_ylim([-1, graph_offset + 7])
+        ax4.set_xlabel("Time (s)")
         ax7.set_title('Z accel centered AHRS2')
         ax7.legend(['Raw z accel (z - m)/s', 'Band Pass filtered', 'Detection Threshold'])
         ax7.set_ylim([-1, graph_offset + 7])
+        ax7.set_xlabel("Time (s)")
 
     else:
         print("Wrong data type ! Please put in lists !")
