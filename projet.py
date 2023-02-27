@@ -16,8 +16,11 @@ from scipy import signal
 from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
 from sklearn.metrics import mean_squared_error
+import gpxpy
+from geopy import distance
+import matplotlib as mpl
 
-
+#plt.style.use('seaborn-deep')
 
 def read_log(log_file):
 
@@ -60,28 +63,50 @@ def get_gps_info(file_name):     ##Extract the time and speed for each point of 
                 c += 1
     return t,v
     
-def plot_accelero(date,acc,timestamp):
-   
-    minute = mdates.MinuteLocator(interval = 2)
-    second = mdates.SecondLocator(bysecond = np.arange(0,60,10)) ##decalage a faire bysecond
-    hour = mdates.HourLocator()
-    formatter = mdates.DateFormatter('%H:%M:%S')
+def plot_accelero(date,acc,timestamp,time_sec,T,fe,distance,height,dist_recherche,Mer):
+    acc = acc - np.mean(acc)
+    peaks, _ = signal.find_peaks(acc,distance = distance, height = height*np.max(acc))
+    time_sec = time_sec.values
     
-    fig, ax = plt.subplots()  
-    ax.plot(date,acc)
-        # [ax.axvline(x, color = 'g') for x in timestamp['timestamp']]
-        # ax.xaxis.set_major_locator(minute)
-        # ax.xaxis.set_major_formatter(formatter)
-        # ax.xaxis.set_minor_locator(second)
+
+    plt.figure()
+    plt.plot(time_sec,acc)
+    plt.xlabel('Temps (s)')
+    plt.ylabel(r'Accélération  ($m^2 .s^{-1}$)')
+    
+    if Mer:
+        plt.plot(time_sec[peaks],acc.values[peaks],'x')
+
+    else:
+        metrics = precision_recall(timestamp['total_sec'].values, time_sec[peaks],dist_recherche) 
+        plt.plot(time_sec[peaks],acc.values[peaks],'x',label = f"RMSE = {round(metrics[-1],2)}s, F1 = {round(metrics[-2],2)}")
+        [plt.vlines(x,0,np.max(acc), color = 'g') for x in timestamp['total_sec']]
+        plt.legend()
     
     
-    # datemin = date.loc[date.dt.minute == 34].iloc[0]
-    # datemax = date.loc[date.dt.minute == 42].iloc[0]
-    #ax.set_xlim(datemin, datemax)
-    fig.autofmt_xdate()
-    plt.ylabel('accélaration verticale (m.s-2)')
-    plt.xlabel('temps')
-    plt.show()
+    # minute = mdates.MinuteLocator(interval = 2)
+    # second = mdates.SecondLocator(bysecond = np.arange(0,60,10)) ##decalage a faire bysecond
+    # hour = mdates.HourLocator()
+    # formatter = mdates.DateFormatter('%H:%M:%S')
+    
+    # fig, ax = plt.subplots()  
+    # ax.plot(date,acc)
+    #     # [ax.axvline(x, color = 'g') for x in timestamp['timestamp']]
+    #     # ax.xaxis.set_major_locator(minute)
+    #     # ax.xaxis.set_major_formatter(formatter)
+    #     # ax.xaxis.set_minor_locator(second)
+    
+    
+    # # datemin = date.loc[date.dt.minute == 34].iloc[0]
+    # # datemax = date.loc[date.dt.minute == 42].iloc[0]
+    # #ax.set_xlim(datemin, datemax)
+    # fig.autofmt_xdate()
+    # plt.ylabel('accélaration verticale (m.s-2)')
+    # plt.xlabel('temps')
+    # plt.show()
+    
+    return time_sec[peaks]
+
 
 def read_timestamp(timestamp_file,df):
     timestamp = pd.read_csv(timestamp_file,sep = ';',index_col = False,names = ['timestamp'])
@@ -123,18 +148,22 @@ def acc_filter_fft(accZ,df):
     
     peaks, _ = signal.find_peaks(accZ_fft,distance = 100, height = 0.00001 )
     peaks = peaks[np.argpartition(accZ_fft[peaks], -2)[-2:]]
-    
+    peaks = peaks[::-1]
 
     half_height = signal.peak_widths(accZ_fft, peaks, rel_height=0.5)
     
-    
-    plt.plot(accZ_fftfreq[peaks],accZ_fft[peaks],'x')
-    plt.hlines(y = half_height[1], xmin =  accZ_fftfreq[half_height[2].astype(np.int32)], xmax = accZ_fftfreq[half_height[3].astype(np.int32)] ,color="C2")
+    c = ['green','orange']
+    for i in range(len(peaks)):
+        plt.plot(accZ_fftfreq[peaks[i]],accZ_fft[peaks[i]],'x',color = c[i],label = f'f={round(accZ_fftfreq[peaks[i]],2)}Hz')
+
+    #plt.legend()
+    #plt.plot(accZ_fftfreq[peaks],accZ_fft[peaks],'x')
+    #plt.hlines(y = half_height[1], xmin =  accZ_fftfreq[half_height[2].astype(np.int32)], xmax = accZ_fftfreq[half_height[3].astype(np.int32)] ,color="C2")
     
     
     
     height =  signal.peak_widths(accZ_fft, peaks, rel_height= 0.995)
-    plt.hlines(y = height[1], xmin =  accZ_fftfreq[height[2].astype(np.int32)], xmax = accZ_fftfreq[height[3].astype(np.int32)] ,color="C2")
+    #plt.hlines(y = height[1], xmin =  accZ_fftfreq[height[2].astype(np.int32)], xmax = accZ_fftfreq[height[3].astype(np.int32)] ,color="C2")
     
     plt.xlabel('Frequence (Hz)')
     plt.ylabel('Amplitude')
@@ -167,14 +196,15 @@ def acc_filter_stft(accZ,df):
 
     return f,t,Zxx
 
-def butter_filter(acc,f,time_sec,timestamp,T):
+def butter_filter(acc,f,time_sec,timestamp,T,fe,distance,height,dist_recherche,Mer):
 
     b,a = signal.butter(N = 1, Wn = f, btype='bandpass', analog=True, output='ba')
-    sos = signal.butter(N = 1, Wn = f, btype='bandpass', analog=False, output='sos', fs = df['output_Hz'].iloc[0])
+    sos = signal.butter(N = 1, Wn = f, btype='bandpass', analog=False, output='sos', fs = fe)
     
     w, h = signal.freqs(b, a)
     filtered = signal.sosfilt(sos,acc)
-    
+    filtered = filtered[50:]
+    time_sec = time_sec[50:]
     
     plt.figure()
     plt.semilogx(w, 20 * np.log10(abs(h)))
@@ -185,31 +215,37 @@ def butter_filter(acc,f,time_sec,timestamp,T):
     
     plt.ylabel('Amplitude [dB]')
     
+    
+    peaks, _ = signal.find_peaks(filtered,distance = distance, height = height*np.max(filtered))
+
     plt.figure()
     plt.plot(time_sec,filtered)
     plt.xlabel('temps (s)')
     plt.ylabel('Amplitude')
-    [plt.vlines(x,0,np.max(filtered), color = 'g') for x in timestamp['total_sec']]
     
-    peaks, _ = signal.find_peaks(filtered,distance = 250, height = 0.2)
-    #print(timestamp['total_sec'].values, time_sec.values[peaks])
-    metrics = precision_recall(timestamp['total_sec'].values, time_sec.values[peaks],T)
+    
+    if Mer:
+        plt.plot(time_sec.values[peaks],filtered[peaks],'x')
 
-    plt.plot(time_sec.values[peaks],filtered[peaks],'x', label = f'RMSE={round(metrics[-1],2)}, F1={round(metrics[-2],2)}')
-    plt.legend()
+    else:
+        metrics = precision_recall(timestamp['total_sec'].values, time_sec.values[peaks],dist_recherche)
+        [plt.vlines(x,0,np.max(filtered), color = 'g') for x in timestamp['total_sec']]
+        plt.plot(time_sec.values[peaks],filtered[peaks],'x',label = f'RMSE={round(metrics[-1],2)}, F1={round(metrics[-2],2)}')
+        #plt.legend()
+
+
     return filtered,time_sec.values[peaks]
     
     
     
     
-def periodogram(acc,time_sec,T,timestamp):
+def periodogram(acc,time_sec,t,timestamp,fe,distance,height,dist_recherche,Mer):
+
     plt.figure()
     density = []
-    
-    box_size =  (int(np.sqrt(10*T))+1)**2
-    box_size = 121
+    box_size =  (int(np.sqrt(10*t*fe)))**2
     for i in range(box_size,acc.size):
-        f, pxx = signal.periodogram(acc[i-box_size:i], fs = df['output_Hz'].iloc[0], window = 'boxcar', nfft = None)
+        f, pxx = signal.periodogram(acc[i-box_size:i], fs = fe, window = 'boxcar', nfft = None)
         density.append(pxx)
     
     density = np.array(density)
@@ -220,78 +256,106 @@ def periodogram(acc,time_sec,T,timestamp):
     
     
     time_sec = time_sec[box_size:].values
-    print((f[0],f[-1],time_sec[0],time_sec[-1]))
     plt.imshow(density, aspect='auto',vmin = 0, extent = (f[0],f[-1],time_sec[0],time_sec[-1]))
     plt.colorbar()
+    plt.ylabel('Temps (s)')
+    plt.xlabel('Fréquence (Hz)')
+    plt.title(r'DSP ($\frac{m^2}{s^4 Hz}$)')
+    
+    
+    power = np.sum(density, axis = 0)
+    peaks, _ = signal.find_peaks(power,distance = 5, height = 0.4*np.max(power))
+    half_height = signal.peak_widths(power, peaks, rel_height=0.3)
+    
+    plt.figure()
+    c = ['green','orange']
+    plt.plot(f,power)
+    for i in range(len(peaks)):
+        plt.plot(f[peaks[i]],power[peaks[i]],'x',color = c[i],label = f'f={round(f[peaks[i]],2)}Hz')
+        plt.hlines(y = half_height[1][i], xmin =  f[int(half_height[2][i])], xmax = f[int(half_height[3][i])+1] ,color = c[i], label = f'f=[{round(f[int(half_height[2][i])],2)}, {round(f[int(half_height[3][i])+1],2)}]Hz \n')
+
+    plt.xlabel('fréquence (Hz)')
+    plt.ylabel(r'$\sum_t DSP(t)$    $(\frac{m^2}{s^4 Hz})$')
+    plt.legend()
+
+    
+ 
     plt.figure()
     power = np.sum(density, axis = 1)
+    peaks, _ = signal.find_peaks(power,distance = distance, height = height*np.max(power))
 
     plt.plot(time_sec,power)
-    plt.xlabel('temps (s)')
-    plt.ylabel('Energie (J)')
-    [plt.vlines(x,0,np.max(power), color = 'g') for x in timestamp['total_sec']]
+    plt.xlabel('Temps (s)')
+    plt.ylabel(r'$\sum_f DSP(f)$    $(\frac{m^2}{s^4 Hz})$')
     
-    peaks, _ = signal.find_peaks(power,distance = 100, height = 0.5)
-    rmse = mean_squared_error(timestamp['total_sec'], time_sec[peaks])
-    
-    plt.plot(time_sec[peaks],power[peaks],'x', label = f'RMSE = {rmse}')
-    plt.legend()
-    #plt.xticks(label = time_sec)
+    if Mer:
+        plt.plot(time_sec[peaks],power[peaks],'x')
 
+    else:
+        metrics = precision_recall(time_sec[peaks],timestamp['total_sec'],dist_recherche)
+        [plt.vlines(x,0,np.max(power), color = 'g') for x in timestamp['total_sec']]
+        plt.plot(time_sec[peaks],power[peaks],'x', label = f"RMSE = {round(metrics[-1],2)}s, F1 = {round(metrics[-2],2)}")
+        #plt.legend()
+        
+    #peaks = peaks[:-1]
 
-    plt.figure()
-    power = np.sum(density, axis = 0)
-    plt.plot(f,power)
-    plt.xlabel('fréquence (Hz)')
-    plt.ylabel('Energie (J)')
-    
-    
-    return density,power,peaks
+    return density,power,time_sec[peaks]
 
-def welch(acc,time_sec,T,t,timestamp):
-    wave_lenght = 2*T*df['output_Hz'].iloc[0]
+def welch(acc,time_sec,T,t,timestamp,fe,distance,height,dist_recherche,Mer):
     
     plt.figure()
     density = []
-    box_size =  (int(np.sqrt(10*T))+1)**2
-    nperseg = (int(np.sqrt(10*t))+1)**2
-    
-    box_size = 121
-    nperseg = 36
+    box_size =  (int(np.sqrt(10*t*fe)))**2
+    nperseg = (int(np.sqrt(2*t*fe)))**2
+
+
     for i in range(box_size,acc.size):
-        f,pxx = signal.welch(acc[i-box_size:i],fs = df['output_Hz'].iloc[0],nperseg = nperseg, window = 'boxcar')
+        f,pxx = signal.welch(acc[i-box_size:i],fs = fe,nperseg = nperseg, window = 'boxcar')
         density.append(pxx)
 
     density = np.array(density)
     time_sec = time_sec[box_size:].values
     
-    power = np.sum(density, axis = 1)
-    
-    peaks, _ = signal.find_peaks(power,distance = wave_lenght, height = 0.1*np.max(power))
-    
-    metrics = precision_recall(time_sec[peaks],timestamp['total_sec'],T)
-    
+
     plt.imshow(density, aspect='auto', extent = (f[0],f[-1],time_sec[0],time_sec[-2]))
     plt.colorbar()
-    plt.xlabel('frequence (Hz)')
-    plt.ylabel('temps (s)')
+    plt.ylabel('Temps (s)')
+    plt.xlabel('Fréquence (Hz)')
+    plt.title(r'DSP ($\frac{m^2}{s^4 Hz}$)')
     
     plt.figure()
-    plt.plot(time_sec,power)
-
-
-    plt.plot(time_sec[peaks],power[peaks],'x',label = f'RMSE={round(metrics[-1],2)}, F1={round(metrics[-2],2)}')
-    plt.xlabel('temps (s)')
-    plt.ylabel('Energie (J)')
-    plt.legend()
+    power = np.sum(density,axis=0)
+    plt.plot(f,power)
+    plt.xlabel('Fréquence (Hz)')
+    plt.ylabel(r'$\sum_t DSP(t)$    $(\frac{m^2}{s^4 Hz})$')
     
-    [plt.vlines(x,0,np.max(power), color = 'g') for x in timestamp['total_sec']]
+    
+    
+    power = np.sum(density, axis = 1)
+    peaks, _ = signal.find_peaks(power,distance = distance, height = height*np.max(power))
+    plt.figure()
+    plt.plot(time_sec,power)
+    if Mer:
+        plt.plot(time_sec[peaks],power[peaks],'x')
+
+    else:
+        metrics = precision_recall(time_sec[peaks],timestamp['total_sec'],dist_recherche)
+        plt.plot(time_sec[peaks],power[peaks],'x',label = f'RMSE={round(metrics[-1],2)}s, F1={round(metrics[-2],2)}')
+        [plt.vlines(x,0,np.max(power), color = 'g') for x in timestamp['total_sec']]
+        #plt.legend()
+
+
+    plt.xlabel('Temps (s)')
+    plt.ylabel(r'$\sum_f DSP(f)$    $(\frac{m^2}{s^4 Hz})$')
+    
+
 
             
     return density,power, time_sec[peaks]
     
  
-def precision_recall(detection_list,truth_list,T):
+def precision_recall(detection_list,truth_list,dist):
+    detection_mean = []
     TP_timestamp = []
     TP_detection = []
     FP = []
@@ -300,6 +364,7 @@ def precision_recall(detection_list,truth_list,T):
         A = ( detection_list >= truth - T) & (detection_list <= truth + T)
         if np.any(A):
             TP_timestamp.append(truth)
+            detection_mean.append(np.mean(detection_list[A]))
         else:
             FN.append(truth)
 
@@ -309,21 +374,31 @@ def precision_recall(detection_list,truth_list,T):
             TP_detection.append(detection)
         else:
             FP.append(detection)
-            
+         
+    #print(len(detection_mean))
+    #print(len(TP_timestamp))
     P = len(TP_detection)/(len(TP_detection)+len(FP))
     R = len(TP_detection)/(len(TP_detection)+len(FN))
     F1 = 2*P*R/(P+R)
-    
-    RMSE = mean_squared_error(TP_timestamp,TP_detection)
+
+    # print(f"TP_timestamp: {TP_timestamp}, ({len(TP_timestamp)})")
+    # print(f"detection_mean:{detection_mean},({len(detection_mean)})")
+    # print(f"TP_detection:{TP_detection},({len(TP_detection)}) \n")
+    RMSE = mean_squared_error(TP_timestamp,detection_mean)
     return TP_timestamp,TP_detection,FP,FN,P,R,F1,RMSE
  
 if __name__ == '__main__':
     
+    Mer = False
+
     treshold = 1.5
 
     
-    log_file_1 = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_08_02\\sillage1_ahrs1_log_2023-02-08_14_29_14.log'  ##timestamp correcte mais bon frequencage
-    log_file_2 = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_19_01_23\\ahrs1_log_2023-01-19_13_34_14.log'  ##sortie en mer
+    
+    log_file = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_08_02\\sillage1_ahrs2_log_2023-02-08_14_29_14.log'  ##timestamp correcte mais bon frequencage
+    
+    if Mer:
+        log_file= 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_rade2\\sillage1_ahrs1_log_2023-02-17_12_58_03.log'  ##sortie en mer
     #log_file_3 = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_10_13\\ahrs1_log_2022-10-13_09_34_42.log'  ##bon timestamps 1 problème de frequencage
     #log_file_4 = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_10_12\\ahrs1_log_2022-10-12_12_36_08.log' ##idem
     
@@ -334,33 +409,40 @@ if __name__ == '__main__':
     timestamp_file = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_08_02\\timestamp_2022-08-02.txt'
     
 
-    df = read_log(log_file_1)
+    df = read_log(log_file)
+
     
     Date = df['rtcDate'].dt.date.iloc[0]
     
     t_gps,v_gps = get_gps_info(gps_file)
     t_ini,t_end = t_gps[0],t_gps[-1]
-    #t_ini,t_end = datetime.combine(Date, time(8,0,0)),datetime.combine(Date, time(8,10,0))
-    # t_ini_2,t_end_2 = datetime.combine(Date, time(14,2,0)),datetime.combine(Date, time(14,4,0))
-
+    #t_ini,t_end = datetime.combine(Date, time(0,0,0)),datetime.combine(Date, time(8,10,0))
+    
+    if Mer:
+        t_ini,t_end = datetime.combine(Date, time(14,23,0)),datetime.combine(Date, time(14,27,0))
+ 
+    
     df = df.loc[(df['rtcDate'] > np.datetime64(t_ini)) & (df['rtcDate'] < np.datetime64(t_end)) ]
-    # df_1 = df.loc[(df['rtcDate'] > np.datetime64(t_ini_1)) & (df['rtcDate'] < np.datetime64(t_end_1)) ]
-    # df_2 = df.loc[(df['rtcDate'] > np.datetime64(t_ini_2)) & (df['rtcDate'] < np.datetime64(t_end_2)) ]    
+
     
     
     time_sec,acc,gyr,mag = get_nav_info(df)
     
     fft = acc_filter_fft(acc['aZ'].values,df)
-    plt.close('all')
-    
+
     timestamp = read_timestamp(timestamp_file,df)
 
 
     #acc['aZ'] = acc_filter_treshold(acc['aZ'], treshold)
     
-    plot_accelero(df['rtcDate'],acc['aZ'],timestamp)
+    #plt.close('all')
     
-    f_wave,f_sill = fft[0][fft[-1]]
+    f_sill,f_wave = fft[0][fft[-1]]
+    
+    if Mer:
+        f_wave, f_sill = 1,0.6
+        
+        
     if  abs(f_wave - f_sill) >= 0.1:       
         f1 = [f_sill-0.1, f_sill + 0.1]
         f2 = [f_wave-0.1, f_wave + 0.1]
@@ -369,17 +451,32 @@ if __name__ == '__main__':
         f1 = [f_sill - abs(f_sill-f_wave), f_sill + abs(f_sill-f_wave)]
         f2 = [f_wave - abs(f_sill-f_wave), f_wave + abs(f_sill-f_wave)]
     
-    
+
     t = 1/f_sill
-    T = 13*t
+    T = 20*t
+    fe = df['output_Hz'].iloc[0]
+    distance = T*fe
+    height = 0.3
+    dist_recherche =T
     #f,t,Zxx = acc_filter_stft(acc['aZ'].values,df)
     
+    detection_time_naif = plot_accelero(df['rtcDate'],acc['aZ'],timestamp,time_sec,T,fe,distance,height,dist_recherche,Mer)    
+    filtered,detection_time_butter = butter_filter(acc['aZ'].values,f1,time_sec,timestamp,T,fe,distance,height,dist_recherche,Mer)
+    density,power,detection_time_perio = periodogram(acc['aZ'].values,time_sec,t,timestamp,fe,distance,height,dist_recherche,Mer)
+    density,power, detection_time_welch = welch(acc['aZ'].values,time_sec,T,t,timestamp,fe,distance,height,dist_recherche,Mer)
+
+    metrics_naif = precision_recall(detection_time_naif,timestamp['total_sec'],dist_recherche)
+    metrics_butter = precision_recall(detection_time_butter,timestamp['total_sec'],dist_recherche)
+    metrics_perio = precision_recall(detection_time_perio,timestamp['total_sec'],dist_recherche)
+    metrics_welch = precision_recall(detection_time_welch,timestamp['total_sec'],dist_recherche)
     
-    filtered,detection_time_butter = butter_filter(acc['aZ'].values,f1,time_sec,timestamp,T)
-
-    #density,power,peaks = periodogram(acc['aZ'].values,time_sec,T,timestamp)
-    density,power, detection_time_welch = welch(acc['aZ'].values,time_sec,T,t,timestamp)
-
-    TP_timestamp,TP_detection,FP,FN,P,R,F1,RMSE = precision_recall(detection_time_welch,timestamp['total_sec'],T)
-
     
+    # f, pxx = signal.periodogram(acc['aZ'].values, fs = df['output_Hz'].iloc[0], window = 'boxcar', nfft = None)
+    # plt.plot(f,pxx)
+    # plt.xlabel('fréquence (Hz)')
+    # plt.ylabel(r"Densité spectrale de puissance ($\frac{m^2}{s^4 Hz}$)")
+    # peaks, _ = signal.find_peaks(pxx,distance = 100, height = 0.1)
+    # peaks = peaks[np.argpartition(pxx[peaks], -2)[-2:]]
+    # for peak in peaks:
+    #     plt.scatter(f[peak],pxx[peak],marker = 'x', s = 20, c='green', label=f'f={round(f[peak],2)}Hz')
+    # plt.legend()
