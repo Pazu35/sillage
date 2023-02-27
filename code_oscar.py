@@ -156,7 +156,7 @@ def acc_filter_fft(accZ,df):
     for i in range(len(peaks)):
         plt.plot(accZ_fftfreq[peaks[i]],accZ_fft[peaks[i]],'x',color = c[i],label = f'f={round(accZ_fftfreq[peaks[i]],2)}Hz')
 
-    #plt.legend()
+    plt.legend()
     #plt.plot(accZ_fftfreq[peaks],accZ_fft[peaks],'x')
     #plt.hlines(y = half_height[1], xmin =  accZ_fftfreq[half_height[2].astype(np.int32)], xmax = accZ_fftfreq[half_height[3].astype(np.int32)] ,color="C2")
     
@@ -249,10 +249,6 @@ def periodogram(acc,time_sec,t,timestamp,fe,distance,height,dist_recherche,Mer):
         density.append(pxx)
     
     density = np.array(density)
-    #density[density == 0] = np.NaN
-    #density = np.log(density)
-    #density[density == -np.inf] = -100
-    #density[density == np.NaN] = -100
     
     
     time_sec = time_sec[box_size:].values
@@ -342,7 +338,7 @@ def welch(acc,time_sec,T,t,timestamp,fe,distance,height,dist_recherche,Mer):
         metrics = precision_recall(time_sec[peaks],timestamp['total_sec'],dist_recherche)
         plt.plot(time_sec[peaks],power[peaks],'x',label = f'RMSE={round(metrics[-1],2)}s, F1={round(metrics[-2],2)}')
         [plt.vlines(x,0,np.max(power), color = 'g') for x in timestamp['total_sec']]
-        #plt.legend()
+        plt.legend()
 
 
     plt.xlabel('Temps (s)')
@@ -374,16 +370,11 @@ def precision_recall(detection_list,truth_list,dist):
             TP_detection.append(detection)
         else:
             FP.append(detection)
-         
-    #print(len(detection_mean))
-    #print(len(TP_timestamp))
+
     P = len(TP_detection)/(len(TP_detection)+len(FP))
     R = len(TP_detection)/(len(TP_detection)+len(FN))
     F1 = 2*P*R/(P+R)
 
-    # print(f"TP_timestamp: {TP_timestamp}, ({len(TP_timestamp)})")
-    # print(f"detection_mean:{detection_mean},({len(detection_mean)})")
-    # print(f"TP_detection:{TP_detection},({len(TP_detection)}) \n")
     RMSE = mean_squared_error(TP_timestamp,detection_mean)
     return TP_timestamp,TP_detection,FP,FN,P,R,F1,RMSE
  
@@ -399,11 +390,10 @@ if __name__ == '__main__':
     
     if Mer:
         log_file= 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_rade2\\sillage1_ahrs1_log_2023-02-17_12_58_03.log'  ##sortie en mer
-    #log_file_3 = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_10_13\\ahrs1_log_2022-10-13_09_34_42.log'  ##bon timestamps 1 problème de frequencage
-    #log_file_4 = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_10_12\\ahrs1_log_2022-10-12_12_36_08.log' ##idem
+  
     
     gps_file = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_08_02\\2023-02-08 15_30_37.gpx'
-    #gps_file = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_19_01_23\\2023-01-19 14_39_15.gpx'
+
     
     
     timestamp_file = 'C:\\Users\\oscar\\Documents\\3A\\guerledan\\log\\log_08_02\\timestamp_2022-08-02.txt'
@@ -416,7 +406,7 @@ if __name__ == '__main__':
     
     t_gps,v_gps = get_gps_info(gps_file)
     t_ini,t_end = t_gps[0],t_gps[-1]
-    #t_ini,t_end = datetime.combine(Date, time(0,0,0)),datetime.combine(Date, time(8,10,0))
+
     
     if Mer:
         t_ini,t_end = datetime.combine(Date, time(14,23,0)),datetime.combine(Date, time(14,27,0))
@@ -432,10 +422,6 @@ if __name__ == '__main__':
 
     timestamp = read_timestamp(timestamp_file,df)
 
-
-    #acc['aZ'] = acc_filter_treshold(acc['aZ'], treshold)
-    
-    #plt.close('all')
     
     f_sill,f_wave = fft[0][fft[-1]]
     
@@ -471,12 +457,4 @@ if __name__ == '__main__':
     metrics_welch = precision_recall(detection_time_welch,timestamp['total_sec'],dist_recherche)
     
     
-    # f, pxx = signal.periodogram(acc['aZ'].values, fs = df['output_Hz'].iloc[0], window = 'boxcar', nfft = None)
-    # plt.plot(f,pxx)
-    # plt.xlabel('fréquence (Hz)')
-    # plt.ylabel(r"Densité spectrale de puissance ($\frac{m^2}{s^4 Hz}$)")
-    # peaks, _ = signal.find_peaks(pxx,distance = 100, height = 0.1)
-    # peaks = peaks[np.argpartition(pxx[peaks], -2)[-2:]]
-    # for peak in peaks:
-    #     plt.scatter(f[peak],pxx[peak],marker = 'x', s = 20, c='green', label=f'f={round(f[peak],2)}Hz')
-    # plt.legend()
+   
